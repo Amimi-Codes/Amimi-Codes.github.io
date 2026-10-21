@@ -849,7 +849,7 @@ const DICE = (function() {
         if (soundVolume === 0) return;
         const audio = document.createElement('audio');
         outerContainer.appendChild(audio);
-        audio.src = 'assets/dnd/dice/nc93322.mp3'; //todo: make this configurable
+        audio.src = '../assets/dnd/dice/nc93322.mp3'; //todo: make this configurable
         audio.volume = soundVolume;
         audio.play().catch(() => {}); // autoplay may be blocked before a click
         audio.onended = () => {

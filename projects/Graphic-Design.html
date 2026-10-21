@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Graphic design by Amy Cui: invitations and posters for community events, shown in a 3D carousel."
+    />
+    <title>Graphic Design — Amy Cui</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&display=swap" />
+    <link rel="stylesheet" href="../styles.css?v=48" />
+    <link rel="stylesheet" href="../event-graphics.css?v=4" />
+    <script src="../script.js?v=47" defer></script>
+    <script src="../event-graphics.js?v=3" defer></script>
+  </head>
+  <body class="noir">
+    <header class="site-nav">
+      <div class="wrap nav-inner">
+        <a class="logo" href="../" aria-label="Designs By Amy home">Designs By Amy</a>
+        <nav aria-label="Main navigation">
+          <a href="./">Projects</a><a href="../about">About Me</a><a href="../contact">Contact <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="page-hero noir-hero">
+        <div class="wrap">
+          <p class="noir-kicker">Now showing <span>03 / Event work</span></p>
+          <h1 class="noir-title"><span aria-hidden="true" class="noir-quote">“</span>Graphic<br />Design<span aria-hidden="true" class="noir-quote">”</span></h1>
+          <p class="noir-credits">
+            <em>starring</em> Invitations · Posters · Community events
+          </p>
+        </div>
+      </section>
+      <section class="gallery-section">
+        <p class="cta reveal"><span class="neon">Click</span> an image</p>
+        <div class="carousel" style="--_n: 5">
+          <div class="carousel-control-button left">
+            <input type="radio" name="carousel-control-input" aria-label="Spin left" />
+          </div>
+          <div class="carousel-control-button right">
+            <input type="radio" name="carousel-control-input" aria-label="Spin right" checked />
+          </div>
+          <div class="carousel-rotation-direction">
+            <!-- Posters listed here are the fallback; event-graphics.js rebuilds the ring
+                 from whatever is in assets/Graphic Design Work on GitHub. Alt text for a
+                 new poster can be added by giving it an <li> here. -->
+            <ul class="carousel-item-wrapper">
+            <li class="carousel-item" style="--_index: 1; --_image-url: url('../assets/Graphic%20Design%20Work/galentines.webp')">
+              <button type="button" data-src="../assets/Graphic%20Design%20Work/galentines.webp" aria-label="Pink Galentine's invitation with ribbons and clinking glasses: Friday, Feb 20th, 6 pm. Dessert potluck, Hear Me Out cake, bead crafts, bouquet making and cookie decorating."></button>
+            </li>
+            <li class="carousel-item" style="--_index: 2; --_image-url: url('../assets/Graphic%20Design%20Work/spooktober-potluck.webp')">
+              <button type="button" data-src="../assets/Graphic%20Design%20Work/spooktober-potluck.webp" aria-label="Black and cream gothic invitation to the Spooktober Potluck with a jack-o'-lantern: Oct 18, 4 to 11 pm. Safety not guaranteed."></button>
+            </li>
+            <li class="carousel-item" style="--_index: 3; --_image-url: url('../assets/Graphic%20Design%20Work/tea-party.webp')">
+              <button type="button" data-src="../assets/Graphic%20Design%20Work/tea-party.webp" aria-label="Night-blue invitation to Mimi's Tea Party with watercolour teapot, teacups and wildflowers: 25 July 2026, 12:30 to 8 pm. RSVP through Partiful, 25 spaces available."></button>
+            </li>
+            <li class="carousel-item" style="--_index: 4; --_image-url: url('../assets/Graphic%20Design%20Work/picnic-in-the-park.webp')">
+              <button type="button" data-src="../assets/Graphic%20Design%20Work/picnic-in-the-park.webp" aria-label="Cream arched invitation to a Picnic in the Park framed by yellow blossoms: 4 August, 1 to 4 pm, Christie Pits Park, meet up at the soccer field."></button>
+            </li>
+            <li class="carousel-item" style="--_index: 5; --_image-url: url('../assets/Graphic%20Design%20Work/potluck-and-drama.webp')">
+              <button type="button" data-src="../assets/Graphic%20Design%20Work/potluck-and-drama.webp" aria-label="Dusty rose invitation to Potluck &amp; Drama with a film reel and bunny teapot: Oct 12th, 3 to 8 pm. Free popcorn and drinks."></button>
+            </li>
+              <li class="carousel-ground"></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <dialog class="poster-dialog" aria-label="Full graphic">
+        <img alt="" />
+        <form method="dialog">
+          <button class="dialog-close" aria-label="Close">✕</button>
+        </form>
+      </dialog>
+    </main>
+    <footer class="footer wrap">
+      <span>© <span id="year">2026</span> AMY CUI</span
+      ><span>MADE WITH A LITTLE SALT WATER</span
+      ><a href="#top">BACK TO SURFACE ↑</a>
+    </footer>
+  </body>
+</html>

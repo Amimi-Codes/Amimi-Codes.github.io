@@ -41,7 +41,7 @@ fetch(LISTING)
   .then((files) => {
     const srcs = files
       .filter((f) => f.type === "file" && /\.(webp|avif|png|jpe?g|gif|svg)$/i.test(f.name))
-      .map((f) => encodeURI(`${FOLDER}/${f.name}`));
+      .map((f) => encodeURI(`../${FOLDER}/${f.name}`));
     const posters = [
       ...known.filter((k) => srcs.includes(k.src)),
       ...srcs.filter((src) => !known.some((k) => k.src === src)).map((src) => ({ src, alt: altFromName(src) })),

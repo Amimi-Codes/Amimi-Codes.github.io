@@ -137,7 +137,7 @@
   const nodes = levels.map(([icon, s, , title], i) => {
     const li = document.createElement("li");
     li.className = `node ${s}`;
-    li.innerHTML = `<button type="button" aria-label="Level ${i + 1}: ${title}, ${status[s]}"><i style="--ico: url(assets/dnd/icons/${icon}.svg)"></i></button>`;
+    li.innerHTML = `<button type="button" aria-label="Level ${i + 1}: ${title}, ${status[s]}"><i style="--ico: url(../assets/dnd/icons/${icon}.svg)"></i></button>`;
     const btn = li.querySelector("button");
     btn.addEventListener("click", () => show(i));
     btn.addEventListener("mouseenter", () => show(i));

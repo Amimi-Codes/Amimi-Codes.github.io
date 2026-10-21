@@ -24,7 +24,13 @@ http
       res.writeHead(403).end();
       return;
     }
-    fs.readFile(file, (error, data) => {
+    // like GitHub Pages: /about serves about.html, /projects redirects to /projects/
+    const html = path.extname(file) ? file : file + ".html";
+    if (!path.extname(file) && !fs.existsSync(html) && fs.existsSync(path.join(file, "index.html"))) {
+      res.writeHead(301, { Location: pathname + "/" }).end();
+      return;
+    }
+    fs.readFile(fs.existsSync(file) && !fs.statSync(file).isDirectory() ? file : html, (error, data) => {
       if (error) {
         res.writeHead(404).end("Not found");
         return;
@@ -32,7 +38,7 @@ http
       res
         .writeHead(200, {
           "Content-Type":
-            mime[path.extname(file)] || "application/octet-stream",
+            mime[path.extname(file)] || (path.extname(file) ? undefined : mime[".html"]) || "application/octet-stream",
         })
         .end(data);
     });
