@@ -1,5 +1,5 @@
 const FOLDER = "assets/Graphic Design Work";
-const LISTING = `https://api.github.com/repos/Amimi-Codes/Portfolio/contents/${encodeURI(FOLDER)}`;
+const LISTING = `https://api.github.com/repos/Amimi-Codes/Amimi-Codes.github.io/contents/${encodeURI(FOLDER)}`;
 
 const carousel = document.querySelector(".carousel");
 const ring = carousel.querySelector(".carousel-item-wrapper");
