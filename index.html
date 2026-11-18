@@ -1,280 +1,1694 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#061b27" />
-    <meta
-      name="description"
-      content="Amy Cui — designer, researcher, and frontend developer."
-    />
-    <title>Amy Cui — Design in motion</title>
-    <link rel="stylesheet" href="styles.css?v=48" />
-    <script src="script.js?v=47" defer></script>
-  </head>
-  <body class="home-page">
-    <a class="skip-link" href="#featured">Skip to featured projects</a>
-    <div class="intro" aria-hidden="true">
-      <div
-        class="amy-puzzle"
-        role="img"
-        aria-label="Puzzle pieces spelling Amy Cui"
-      >
-        <svg class="puzzle-piece p1" viewBox="0 0 100 100">
-          <path
-            d="M8 8 H100 v27 c11.28,-13.95 24,-2.1 24,15s-12.72,28.95 -24,15 v27 H8 V8 z"
-          />
-          <text x="50" y="62">A</text></svg
-        ><svg class="puzzle-piece p2" viewBox="0 0 100 100">
-          <path
-            d="M0 8 H100 v27 c11.28,-13.95 24,-2.1 24,15s-12.72,28.95 -24,15 v27 H0 v-27 c11.28,13.95 24,2.1 24,-15s-12.72,-28.95 -24,-15 v-27 z"
-          />
-          <text x="50" y="62">M</text></svg
-        ><svg class="puzzle-piece p3" viewBox="0 0 100 100">
-          <path
-            d="M0 8 H92 V92 H0 v-27 c11.28,13.95 24,2.1 24,-15s-12.72,-28.95 -24,-15 v-27 z"
-          />
-          <text x="50" y="62">Y</text></svg
-        ><svg class="puzzle-piece p4" viewBox="0 0 100 100">
-          <path
-            d="M8 8 H100 v27 c11.28,-13.95 24,-2.1 24,15s-12.72,28.95 -24,15 v27 H8 V8 z"
-          />
-          <text x="50" y="62">C</text></svg
-        ><svg class="puzzle-piece p5" viewBox="0 0 100 100">
-          <path
-            d="M0 8 H100 v27 c11.28,-13.95 24,-2.1 24,15s-12.72,28.95 -24,15 v27 H0 v-27 c11.28,13.95 24,2.1 24,-15s-12.72,-28.95 -24,-15 v-27 z"
-          />
-          <text x="50" y="62">U</text></svg
-        ><svg class="puzzle-piece p6" viewBox="0 0 100 100">
-          <path
-            d="M0 8 H92 V92 H0 v-27 c11.28,13.95 24,2.1 24,-15s-12.72,-28.95 -24,-15 v-27 z"
-          />
-          <text x="50" y="62">I</text>
-        </svg>
-      </div>
-      <span>FINDING MY FIT IN LIFE</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#010c14" />
+  <meta name="description" content="Amy Cui — designer, researcher, and frontend developer. Pick a path: the surface, the reef or the abyss." />
+  <title>Amy Cui — Designs By Amy</title>
+
+  <!-- Fonts: Manrope (600, 700, 800) & DM Sans (400, 700) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+  <style>
+    :root {
+      --bg-abyss: #010c14;
+      --hud-cyan: #38d6ff;
+      --hud-mint: #6ef7df;
+      --hud-amber: #ffbe4f;
+      --hud-bg: rgba(4, 20, 34, 0.78);
+      --text-main: #e6f7fa;
+      --text-muted: #98bcc7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-abyss);
+      color: var(--text-main);
+      font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+    }
+
+    h1, h2, h3, .font-heading {
+      font-family: "Manrope", sans-serif;
+      font-weight: 600;
+    }
+
+    /* =========================================================
+       PART 1: LOADING SCREEN OVERLAY
+       ========================================================= */
+    #loader-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #04151e;
+      overflow: hidden;
+      transition: opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1),
+                  visibility 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #loader-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #ocean-bg-loader {
+      position: absolute;
+      inset: -4%;
+      width: 108%;
+      height: 108%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .puzzle-stage {
+      position: relative;
+      z-index: 2;
+      width: min(86vw, 420px);
+      aspect-ratio: 420 / 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #puzzle-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .puzzle-piece { will-change: transform, opacity; }
+    .piece-shape {
+      fill: url(#pieceGrad);
+      stroke: #b5fff1;
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+    }
+    .piece-letter {
+      fill: #07222c;
+      font-family: "Manrope", sans-serif;
+      font-size: 35px;
+      font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: central;
+      user-select: none;
+    }
+
+    #bubbles-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    #snap-ripple {
+      fill: none;
+      stroke: #9efff0;
+      stroke-width: 2;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       PART 2: HYPERREALISTIC DEEP-SEA LANDING PAGE
+       ========================================================= */
+    #landing-page {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 52% 0%, #0b5d7f 0%, #05334a 38%, #021624 74%, #010910 100%);
+      transform: scale(1.035);
+      transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #landing-page.is-active {
+      transform: scale(1);
+    }
+
+    /* WebGL scene */
+    #scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+
+    .resume-skip {
+      position: absolute; top: 16px; left: 16px; z-index: 20;
+      font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 13px;
+      padding: 10px 16px; border: 1px solid var(--hud-mint); background: rgba(3, 21, 34, 0.9); color: var(--hud-mint);
+      transform: translateY(-200%); transition: transform 0.2s ease; cursor: pointer;
+    }
+    .resume-skip:focus-visible { transform: none; outline: 3px solid var(--hud-amber); outline-offset: 3px; }
+    .hud-card:focus-visible, .hud-mini-btn:focus-visible {
+      outline: none; border-color: var(--hud-amber); box-shadow: inset 0 0 0 2px var(--hud-amber);
+    }
+    @media (prefers-reduced-motion: reduce) { .hud-card, .hud-mini-btn { transition: none; } }
+
+    /* Top-right minimal HUD controls */
+    .hud-top-bar {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      z-index: 12;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hud-mini-btn {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 700;
+      font-size: 11.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9beeff;
+      background: rgba(3, 21, 34, 0.65);
+      border: 1px solid rgba(56, 214, 255, 0.35);
+      padding: 7px 14px;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .hud-mini-btn:hover {
+      background: rgba(14, 58, 84, 0.85);
+      border-color: var(--hud-cyan);
+      color: #ffffff;
+    }
+
+    /* =========================================================
+       SCI-FI PDA DIALOGUE HUD (BOTTOM CENTER)
+       ========================================================= */
+    .hud-dialogue-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(14px, 3.2vh, 34px);
+      transform: translateX(-50%);
+      width: min(92vw, 940px);
+      z-index: 10;
+    }
+
+    .hud-frame-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      filter: drop-shadow(0 16px 38px rgba(0, 0, 0, 0.72));
+    }
+
+    .hud-choice-badge {
+      position: absolute;
+      top: -13px;
+      left: 26px;
+      z-index: 3;
+      background: linear-gradient(90deg, #5ef5de 0%, #38d6ff 100%);
+      color: #031a24;
+      font-family: "Manrope", sans-serif;
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: 0.04em;
+      padding: 4px 15px;
+      clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+      box-shadow: 0 0 16px rgba(94, 245, 222, 0.45);
+    }
+
+    .hud-dialogue-inner {
+      position: relative;
+      z-index: 2;
+      padding: 26px 28px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hud-prompt {
+      font-family: "Manrope", sans-serif;
+      font-weight: 600;
+      font-size: clamp(0.98rem, 1.55vw, 1.16rem);
+      color: #eef9fc;
+      margin-bottom: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .hud-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .hud-card {
+      display: block;
+      text-decoration: none;
+      position: relative;
+      text-align: left;
+      background: rgba(6, 28, 46, 0.62);
+      border: 1px solid rgba(56, 214, 255, 0.22);
+      padding: 13px 14px;
+      color: var(--text-main);
+      cursor: pointer;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, transform 0.2s ease;
+    }
+
+    .hud-card:hover {
+      background: rgba(10, 44, 68, 0.78);
+      border-color: rgba(56, 214, 255, 0.65);
+      transform: translateY(-2px);
+    }
+
+    .hud-card.is-selected {
+      background: rgba(9, 46, 68, 0.85);
+      border-color: var(--hud-mint);
+      box-shadow: inset 0 0 18px rgba(110, 247, 223, 0.16), 0 0 18px rgba(56, 214, 255, 0.22);
+    }
+
+    .hud-card-header {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 7px;
+      flex-wrap: wrap;
+    }
+
+    .hud-key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      font-family: "DM Sans", sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      color: #82efff;
+      background: rgba(5, 25, 42, 0.85);
+      border: 1px solid rgba(56, 214, 255, 0.45);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .hud-card.is-selected .hud-key {
+      background: rgba(110, 247, 223, 0.18);
+      border-color: var(--hud-mint);
+      color: var(--hud-mint);
+    }
+
+    .hud-card-title {
+      font-family: "Manrope", sans-serif;
+      font-weight: 600;
+      font-size: 15.5px;
+      color: #ffffff;
+    }
+
+    .hud-card-tag {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 700;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--hud-amber);
+    }
+
+    .hud-card-desc {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 400;
+      font-size: 12.5px;
+      line-height: 1.48;
+      color: var(--text-muted);
+    }
+
+    .hud-footer-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 11px;
+      font-size: 12px;
+    }
+
+    .hud-hint {
+      color: rgba(152, 188, 199, 0.65);
+      font-family: "DM Sans", sans-serif;
+      font-weight: 400;
+    }
+
+    .hud-status {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 700;
+      color: var(--hud-mint);
+      letter-spacing: 0.03em;
+    }
+
+    @media (max-width: 780px) {
+      .hud-cards-grid { grid-template-columns: 1fr; gap: 8px; }
+      .hud-dialogue-inner { padding: 20px 16px 14px; }
+      .hud-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       1. PUZZLE LOADING SCREEN
+       ========================================================= -->
+  <div id="loader-overlay" aria-label="Loading">
+    <svg id="ocean-bg-loader" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="waterGradLoader" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0b465c" />
+          <stop offset="45%" stop-color="#072b3b" />
+          <stop offset="100%" stop-color="#03131b" />
+        </linearGradient>
+        <linearGradient id="rayGradLoader" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#7ef7e4" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#0a394a" stop-opacity="0" />
+        </linearGradient>
+        <filter id="oceanBlurLoader" x="-15%" y="-15%" width="130%" height="130%">
+          <feGaussianBlur stdDeviation="16" />
+        </filter>
+        <filter id="rayBlurLoader" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="24" />
+        </filter>
+      </defs>
+      <rect x="-100" y="-100" width="1640" height="1100" fill="url(#waterGradLoader)" />
+      <g filter="url(#rayBlurLoader)">
+        <polygon points="220,-80 420,-80 650,850 180,850" fill="url(#rayGradLoader)" opacity="0.2" />
+        <polygon points="650,-80 860,-80 1120,850 640,850" fill="url(#rayGradLoader)" opacity="0.22" />
+        <polygon points="1030,-80 1190,-80 1440,800 1080,800" fill="url(#rayGradLoader)" opacity="0.16" />
+      </g>
+      <g filter="url(#oceanBlurLoader)">
+        <path d="M-80,720 Q140,560 320,660 T760,640 T1200,590 T1520,680 L1520,980 L-80,980 Z" fill="#092936" />
+        <path d="M-100,795 Q420,750 860,800 T1540,775 L1540,980 L-100,980 Z" fill="#0d3440" />
+      </g>
+    </svg>
+
+    <div class="puzzle-stage">
+      <svg id="puzzle-svg" viewBox="-75 -55 420 304" aria-hidden="true">
+        <defs>
+          <linearGradient id="pieceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#76e3cc" />
+            <stop offset="100%" stop-color="#53c2ac" />
+          </linearGradient>
+          <filter id="pieceGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#7efce4" flood-opacity="0.65" />
+          </filter>
+          <filter id="dissolveFilter" x="-50%" y="-50%" width="200%" height="200%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.042" numOctaves="2" seed="7" result="noise" />
+            <feDisplacementMap id="dissolveMap" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+        <circle id="snap-ripple" cx="135" cy="97" r="20" />
+        <g id="puzzle-group" filter="url(#pieceGlow)"></g>
+      </svg>
     </div>
-    <header class="site-nav">
-      <div class="wrap nav-inner">
-        <a class="logo" href="./" aria-label="Designs By Amy home">Designs By Amy</a>
-        <nav aria-label="Main navigation">
-          <a href="projects/">Projects</a><a href="about">About Me</a><a href="contact">Contact <span aria-hidden="true">↗</span></a>
-        </nav>
+
+    <svg id="bubbles-svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="bubbleGlassGrad" x1="25%" y1="0%" x2="75%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65" />
+          <stop offset="18%" stop-color="#c4fbff" stop-opacity="0.22" />
+          <stop offset="55%" stop-color="#5cd4ea" stop-opacity="0.06" />
+          <stop offset="82%" stop-color="#053245" stop-opacity="0.52" />
+          <stop offset="96%" stop-color="#03202e" stop-opacity="0.72" />
+          <stop offset="100%" stop-color="#8bf4ff" stop-opacity="0.5" />
+        </linearGradient>
+        <radialGradient id="bubbleSmallGrad" cx="38%" cy="34%" r="64%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08" />
+          <stop offset="55%" stop-color="#86f3ff" stop-opacity="0.12" />
+          <stop offset="84%" stop-color="#063547" stop-opacity="0.65" />
+          <stop offset="100%" stop-color="#d4feff" stop-opacity="0.78" />
+        </radialGradient>
+      </defs>
+      <g id="bubbles-layer"></g>
+    </svg>
+  </div>
+
+  <!-- =========================================================
+       2. HYPERREALISTIC DEEP-SEA LANDING PAGE
+       ========================================================= -->
+  <main id="landing-page">
+    <!-- Real-time 3D deep-sea scene (Three.js) -->
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <a class="resume-skip" href="assets/resume.pdf" target="_blank" rel="noopener">Open resume</a>
+
+    <!-- Minimal top-right utility HUD -->
+    <div class="hud-top-bar">
+      <button class="hud-mini-btn" id="replay-loader-btn" type="button">Replay Intro</button>
+    </div>
+
+    <!-- =========================================================
+         3. SCI-FI GAME DIALOGUE HUD (Subnautica PDA Style)
+         ========================================================= -->
+    <section class="hud-dialogue-wrap" aria-label="Navigation Choice">
+      <div class="hud-choice-badge">Make your Choice</div>
+
+      <!-- Sci-Fi Chamfered HUD Frame SVG (Matches Reference #5) -->
+      <svg class="hud-frame-svg" viewBox="0 0 940 240" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <pattern id="hudGridPattern" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(56, 214, 255, 0.065)" stroke-width="1" />
+          </pattern>
+        </defs>
+
+        <!-- Main dark translucent chamfered body -->
+        <path d="M 18,8 L 660,8 L 690,26 L 916,26 L 932,42 L 932,216 L 914,232 L 24,232 L 8,216 L 8,36 L 18,26 Z"
+              fill="rgba(3, 18, 32, 0.84)" stroke="#1b6f9c" stroke-width="1.6" />
+
+        <!-- Subtle internal sci-fi tech grid -->
+        <path d="M 18,8 L 660,8 L 690,26 L 916,26 L 932,42 L 932,216 L 914,232 L 24,232 L 8,216 L 8,36 L 18,26 Z"
+              fill="url(#hudGridPattern)" />
+
+        <!-- Bright Cyan Accent Bars (Top-left, Top-mid, Bottom-right) -->
+        <path d="M 18,8 L 285,8" stroke="#38d6ff" stroke-width="3.5" stroke-linecap="round" />
+        <path d="M 455,8 L 660,8 L 690,26 L 760,26" fill="none" stroke="#38d6ff" stroke-width="3" />
+        <path d="M 420,232 L 695,232" stroke="#38d6ff" stroke-width="4" stroke-linecap="round" />
+        <path d="M 35,232 L 160,232" stroke="#6ef7df" stroke-width="3" stroke-linecap="round" />
+
+        <!-- Diagonal Tech Hash Ticks on Top-Right Shoulder -->
+        <g stroke="#38d6ff" stroke-width="3.2" opacity="0.88">
+          <line x1="686" y1="8" x2="696" y2="18" />
+          <line x1="699" y1="8" x2="709" y2="18" />
+          <line x1="712" y1="8" x2="722" y2="18" />
+          <line x1="725" y1="8" x2="735" y2="18" />
+          <line x1="738" y1="8" x2="748" y2="18" />
+          <line x1="751" y1="8" x2="761" y2="18" />
+        </g>
+      </svg>
+
+      <div class="hud-dialogue-inner">
+        <p class="hud-prompt">You’ve drifted down to an old crossroads. Three paths fade into the dark. Which way will you swim?</p>
+
+        <div class="hud-cards-grid">
+          <a class="hud-card is-selected" href="home" data-choice="surface">
+            <div class="hud-card-header">
+              <span class="hud-key">1</span>
+              <span class="hud-card-title">The Surface</span>
+              <span class="hud-card-tag">Quick Look</span>
+            </div>
+            <p class="hud-card-desc">The essentials, fast: resume, top projects and how to reach me. Made for a two-minute review.</p>
+          </a>
+
+          <a class="hud-card" href="projects/" data-choice="reef">
+            <div class="hud-card-header">
+              <span class="hud-key">2</span>
+              <span class="hud-card-title">The Reef</span>
+              <span class="hud-card-tag">Finished Work</span>
+            </div>
+            <p class="hud-card-desc">My completed projects: UX case studies, graphic design and more, each with the story of how it came together.</p>
+          </a>
+
+          <a class="hud-card" href="abyss" data-choice="abyss">
+            <div class="hud-card-header">
+              <span class="hud-key">3</span>
+              <span class="hud-card-title">The Abyss</span>
+              <span class="hud-card-tag">Works in Progress</span>
+            </div>
+            <p class="hud-card-desc">Things still taking shape, fun builds and experiments I made just because. Bring a flashlight.</p>
+          </a>
+        </div>
+
+        <div class="hud-footer-row">
+          <span class="hud-status" id="hud-status-text">Swimming toward The Surface...</span>
+        </div>
       </div>
-    </header>
-    <main>
-      <section class="hero" id="top" aria-labelledby="hero-title">
-        <canvas id="particles" aria-hidden="true"></canvas>
-        <div class="hero-glow" aria-hidden="true"></div>
-        <div class="hero-jelly" aria-hidden="true">
-          <div class="jelly-body">
-            <img src="assets/jellyfish.svg" alt="" /><svg
-              class="jelly-bolts"
-              viewBox="0 0 46.5 63.75"
-              fill="none"
-              stroke="#fff59a"
-              stroke-width="1.2"
-            >
-              <path d="M2 6l4 3-3 3 4 3" />
-              <path d="M44 4l-4 4 3 2-4 4" />
-              <path d="M4 30l-4 4 3 2-3 4" />
-              <path d="M40 32l4 4-3 2 4 4" />
-            </svg>
-          </div>
-        </div>
-        <div class="hero-inner wrap">
-          <p class="eyebrow">
-            <svg class="sparkle" viewBox="0 0 40 40" aria-hidden="true">
-              <defs>
-                <linearGradient
-                  id="sparkle-metal"
-                  x1="0"
-                  y1="0"
-                  x2=".6"
-                  y2=".6"
-                  spreadMethod="reflect"
-                >
-                  <stop offset="0" stop-color="#c4822f" />
-                  <stop offset=".4" stop-color="#ffd77f" />
-                  <stop offset=".55" stop-color="#fffdf0" />
-                  <stop offset=".7" stop-color="#ffc659" />
-                  <stop offset="1" stop-color="#d08c33" />
-                  <animateTransform
-                    attributeName="gradientTransform"
-                    type="translate"
-                    values="0 0;1.2 1.2"
-                    dur="2.4s"
-                    repeatCount="indefinite"
-                  />
-                </linearGradient>
-              </defs>
-              <path
-                fill="url(#sparkle-metal)"
-                d="M17 4C18 14 20 17 30 19 20 21 18 24 17 36 16 24 14 21 4 19 14 17 16 14 17 4Z"
-              />
-              <path
-                class="s-small"
-                fill="url(#sparkle-metal)"
-                d="M32 1C32.5 5 33.5 6 37 6.5 33.5 7 32.5 8 32 12 31.5 8 30.5 7 27 6.5 30.5 6 31.5 5 32 1Z"
-              />
-              <path
-                class="s-small"
-                fill="url(#sparkle-metal)"
-                d="M33 28C33.4 31 34 31.6 36.5 32 34 32.4 33.4 33 33 36 32.6 33 32 32.4 29.5 32 32 31.6 32.6 31 33 28Z"
-              />
-            </svg>
-            DESIGNER · RESEARCHER · FRONTEND DEVELOPER
-          </p>
-          <h1 id="hero-title">
-            <span>Amy</span><span><em>Cui</em></span>
-          </h1>
-          <div class="hero-bottom">
-            <p>
-              Designing and creating creative solutions and products to improve
-              user experience.
-            </p>
-            <a class="explore-link" href="projects/"
-              >View all projects <span>↗</span></a
-            >
-          </div>
-        </div>
-      </section>
-      <section
-        class="book-stories wrap"
-        id="featured"
-        aria-labelledby="work-title"
-      >
-        <div class="story-heading reveal">
-          <h2 id="work-title">Stories I’ve <em>told</em></h2>
-          <p>
-            A selection of case studies and interactive experiences that
-            showcase my work as a designer, researcher, and frontend developer.
-          </p>
-        </div>
-        <div class="storybook reveal" data-storybook>
-          <div class="pixel-book">
-            <img class="book-art" src="assets/book-open/0.svg" alt="" aria-hidden="true" width="1440" height="825" />
-            <div
-              class="book-carousel"
-              tabindex="0"
-              aria-label="Case studies, scroll sideways to turn the page"
-            >
-              <section class="book-scene" data-story="0">
-                <div class="page-container">
-                  <div class="book-left">
-                    <img
-                      class="book-page-mockup"
-                      src="assets/dnd/origin-mockup.webp"
-                      alt="Origin character creator shown on a desktop monitor and a phone"
-                      width="871"
-                      height="825"
-                    />
-                  </div>
-                  <div class="book-right">
-                    <h3>Origin</h3>
-                    <p>
-                      An interactive web experience that allows users to easily create
-                      their own Dungeons & Dragons character, with a focus on
-                      accessibility and usability.
-                    </p>
-                    <span class="book-tags"
-                      ><b>#Frontend</b><b>#Interaction Design</b><b>#Passion Project</b></span
-                    ><a class="book-cta" href="projects/Origin">View Story <span>↗</span></a>
-                  </div>
-        </div>
-              </section>
-              <section class="book-scene" data-story="1">
-                <div class="page-container">
-                  <div class="book-left"></div>
-                  <div class="book-right">
-                    <h3>HabitU</h3>
-                    <p>
-                      A conceptual mobile app that helps users build healthy habits through
-                      research-backed habit formation techniques and a
-                      personalized experience.
-                    </p>
-                    <span class="book-tags"
-                      ><b>#UX Research</b><b>#Product Design</b
-                      ><b>#Student Project</b></span
-                    ><a class="book-cta" href="projects/HabitU">View Story <span>↗</span></a>
-                  </div>
-                </div>
-              </section>
-              <section class="book-scene" data-story="2">
-                <div class="page-container">
-                  <div class="book-left">
-                    <div class="book-posters">
-                      <img src="assets/Graphic%20Design%20Work/tea-party.webp" alt="Tea party event poster" loading="lazy" />
-                      <img src="assets/Graphic%20Design%20Work/galentines.webp" alt="Galentine's event invitation" loading="lazy" />
-                      <img src="assets/Graphic%20Design%20Work/picnic-in-the-park.webp" alt="Picnic in the park event poster" loading="lazy" />
-                    </div>
-                  </div>
-                  <div class="book-right">
-                    <h3>Graphic Design</h3>
-                    <p>
-                      Invitations and posters made for the community events I host,
-                      from potlucks and picnics to tea parties, each one setting the
-                      mood before guests arrive.
-                    </p>
-                    <span class="book-tags"><b>#Graphic Design</b><b>#Event Branding</b><b>#Print</b></span
-                    ><a class="book-cta" href="projects/Graphic-Design">View Story <span>↗</span></a>
-                  </div>
-                </div>
-              </section>
-            </div>
-            <div
-              class="book-popup is-hidden"
-              role="img"
-              aria-label="HabitU app screens popping out of the page"
-            >
-              <img
-                class="popup-phone-1"
-                src="assets/HabitU%20Assets/habitu-phone-1.svg"
-                alt=""
-              /><img
-                class="popup-phone-2"
-                src="assets/HabitU%20Assets/habitu-phone-2.svg"
-                alt=""
-              /><img
-                class="popup-phone-3"
-                src="assets/HabitU%20Assets/habitu-phone-3.svg"
-                alt=""
-              />
-            </div>
-          </div>
-          <nav class="book-nav" aria-label="Highlighted stories">
-            <button class="book-arrow book-arrow-prev" type="button" aria-label="Previous story"><svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#5a3a17" d="M5 0h2v1h-2zM4 1h1v1h-1zM6 1h1v1h-1zM3 2h1v1h-1zM6 2h1v1h-1zM2 3h1v1h-1zM6 3h7v1h-7zM1 4h1v1h-1zM12 4h1v1h-1zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM12 6h1v1h-1zM2 7h1v1h-1zM6 7h7v1h-7zM3 8h1v1h-1zM6 8h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM5 10h2v1h-2z"/><path fill="#b88742" d="M5 2h1v1h-1zM4 3h2v1h-2zM3 4h4v1h-4zM11 4h1v1h-1zM1 5h11v1h-11zM3 6h4v1h-4zM4 7h2v1h-2zM5 8h1v1h-1z"/><path fill="#f2d189" d="M5 1h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1zM2 4h1v1h-1zM7 4h4v1h-4z"/><path fill="#8a6230" d="M2 6h1v1h-1zM7 6h5v1h-5zM3 7h1v1h-1zM4 8h1v1h-1zM5 9h1v1h-1z"/></svg></button>
-            <span class="book-dots" aria-hidden="true"></span>
-            <button class="book-arrow book-arrow-next" type="button" aria-label="Next story"><svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#5a3a17" d="M5 0h2v1h-2zM4 1h1v1h-1zM6 1h1v1h-1zM3 2h1v1h-1zM6 2h1v1h-1zM2 3h1v1h-1zM6 3h7v1h-7zM1 4h1v1h-1zM12 4h1v1h-1zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM12 6h1v1h-1zM2 7h1v1h-1zM6 7h7v1h-7zM3 8h1v1h-1zM6 8h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM5 10h2v1h-2z"/><path fill="#b88742" d="M5 2h1v1h-1zM4 3h2v1h-2zM3 4h4v1h-4zM11 4h1v1h-1zM1 5h11v1h-11zM3 6h4v1h-4zM4 7h2v1h-2zM5 8h1v1h-1z"/><path fill="#f2d189" d="M5 1h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1zM2 4h1v1h-1zM7 4h4v1h-4z"/><path fill="#8a6230" d="M2 6h1v1h-1zM7 6h5v1h-5zM3 7h1v1h-1zM4 8h1v1h-1zM5 9h1v1h-1z"/></svg></button>
-          </nav>
-        </div>
-      </section>
-      <section class="about-section" id="about" aria-labelledby="about-title">
-        <div class="wrap about-grid">
-          <div>
-            <h2 id="about-title">
-              <span class="word-article" aria-hidden="true">A</span> <span class="word-cycle" aria-hidden="true"><span><em>creator</em><em data-article="An">artist</em><em>developer</em></span></span><span class="sr-only">A creator, artist and developer</span> with<br />an eye for <em>possibility.</em>
-            </h2>
-            <p>
-              I’m Amy, a designer and developer with a background in full-stack
-              development, UX research, and event logistics. I bring systems
-              thinking, visual curiosity, and a creative lens to my work
-            </p>
-            <div class="about-ctas">
-              <a class="primary-cta" href="about"
-                >More about me <span>↗</span></a
-              ><a class="primary-cta ghost-cta" href="assets/resume.pdf" target="_blank" rel="noopener"
-                >View my resume <span>↗</span></a
-              >
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-    <footer class="footer wrap">
-      <span>© <span id="year">2026</span> AMY CUI</span
-      ><span>MADE WITH A LITTLE SALT WATER</span
-      ><a href="#top">BACK TO SURFACE ↑</a>
-    </footer>
-  </body>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const overlay = document.getElementById("loader-overlay");
+      const landingPage = document.getElementById("landing-page");
+      const puzzleGroup = document.getElementById("puzzle-group");
+      const bubblesLayer = document.getElementById("bubbles-layer");
+      const dissolveMap = document.getElementById("dissolveMap");
+      const snapRipple = document.getElementById("snap-ripple");
+      const replayBtn = document.getElementById("replay-loader-btn");
+
+      /* =======================================================
+         1. PUZZLE LOADER + PAUSE + HYPERREALISTIC BUBBLES
+         ======================================================= */
+      function createPiecePath(leftType, rightType, roundLeft = false, roundRight = false) {
+        const S = 90;
+        const R = 8;
+        const x0 = roundLeft ? R : 0;
+        const xRightEnd = roundRight ? S - R : S;
+        const yTopRight = roundRight ? R : 0;
+        const yBotRight = roundRight ? S - R : S;
+        const yBotLeft = roundLeft ? S - R : S;
+        const yTopLeft = roundLeft ? R : 0;
+
+        let d = `M ${x0},0 L ${xRightEnd},0 `;
+        if (roundRight) d += `A ${R},${R} 0 0,1 ${S},${yTopRight} `;
+
+        if (rightType === "flat") {
+          d += `L ${S},${yBotRight} `;
+        } else {
+          const dir = rightType === "tab" ? 1 : -1;
+          d += `L ${S},34 C ${S + 5 * dir},34 ${S + 4 * dir},28 ${S + 12 * dir},28 ` +
+               `C ${S + 20 * dir},28 ${S + 22 * dir},36 ${S + 22 * dir},45 ` +
+               `C ${S + 22 * dir},54 ${S + 20 * dir},62 ${S + 12 * dir},62 ` +
+               `C ${S + 4 * dir},62 ${S + 5 * dir},56 ${S},56 L ${S},${yBotRight} `;
+        }
+
+        if (roundRight) d += `A ${R},${R} 0 0,1 ${xRightEnd},${S} `;
+        d += `L ${x0},${S} `;
+        if (roundLeft) d += `A ${R},${R} 0 0,1 0,${yBotLeft} `;
+
+        if (leftType === "flat") {
+          d += `L 0,${yTopLeft} `;
+        } else {
+          const dir = leftType === "tab" ? -1 : 1;
+          d += `L 0,56 C ${5 * dir},56 ${4 * dir},62 ${12 * dir},62 ` +
+               `C ${20 * dir},62 ${22 * dir},54 ${22 * dir},45 ` +
+               `C ${22 * dir},36 ${20 * dir},28 ${12 * dir},28 ` +
+               `C ${4 * dir},28 ${5 * dir},34 0,34 L 0,${yTopLeft} `;
+        }
+
+        if (roundLeft) d += `A ${R},${R} 0 0,1 ${x0},0 `;
+        return d + "Z";
+      }
+
+      const PIECES_CONFIG = [
+        { id: "A", letter: "A", left: "flat", right: "tab", roundLeft: true, roundRight: false, tx: 0, ty: 0, letterX: 44, startDx: -46, startDy: 235, arcX: 18, sRot: -9, duration: 1050, easePow: 3.1, delay: 80 },
+        { id: "M", letter: "M", left: "slot", right: "slot", roundLeft: false, roundRight: false, tx: 90, ty: 0, letterX: 45, startDx: 12, startDy: 295, arcX: -16, sRot: 6, duration: 1180, easePow: 2.7, delay: 320 },
+        { id: "Y", letter: "Y", left: "tab", right: "flat", roundLeft: false, roundRight: true, tx: 180, ty: 0, letterX: 46, startDx: 56, startDy: 255, arcX: -20, sRot: 11, duration: 1020, easePow: 3.4, delay: 560 },
+        { id: "C", letter: "C", left: "flat", right: "tab", roundLeft: true, roundRight: false, tx: 0, ty: 104, letterX: 44, startDx: -58, startDy: 205, arcX: 14, sRot: -7, duration: 1120, easePow: 2.9, delay: 820 },
+        { id: "U", letter: "U", left: "slot", right: "tab", roundLeft: false, roundRight: false, tx: 90, ty: 104, letterX: 48, startDx: -10, startDy: 270, arcX: 12, sRot: -5, duration: 1220, easePow: 2.6, delay: 1060 },
+        { id: "I", letter: "I", left: "slot", right: "flat", roundLeft: false, roundRight: true, tx: 180, ty: 104, letterX: 49, startDx: 66, startDy: 225, arcX: -18, sRot: 10, duration: 1140, easePow: 3.2, delay: 1320, isFinal: true }
+      ];
+
+      let activeTimers = [];
+      let activeFrames = [];
+      let bubbleEngineId = null;
+      let activeBubbles = [];
+      let lastBubbleTime = 0;
+
+      function clearLoaderAnimations() {
+        activeTimers.forEach(clearTimeout);
+        activeFrames.forEach(cancelAnimationFrame);
+        activeTimers = [];
+        activeFrames = [];
+        if (bubbleEngineId) {
+          cancelAnimationFrame(bubbleEngineId);
+          bubbleEngineId = null;
+        }
+        activeBubbles = [];
+      }
+
+      function easeOutPower(t, pow) {
+        return 1 - Math.pow(1 - t, pow);
+      }
+
+      function createHyperBubbleNode(r) {
+        const g = document.createElementNS(SVG_NS, "g");
+
+        if (r < 4.8) {
+          const rx = r * (0.95 + Math.random() * 0.25);
+          const ry = r * (0.8 + Math.random() * 0.2);
+          const body = document.createElementNS(SVG_NS, "ellipse");
+          body.setAttribute("rx", rx.toFixed(2));
+          body.setAttribute("ry", ry.toFixed(2));
+          body.setAttribute("fill", "url(#bubbleSmallGrad)");
+          body.setAttribute("stroke", "rgba(3, 33, 47, 0.78)");
+          body.setAttribute("stroke-width", "0.75");
+          g.appendChild(body);
+
+          const spec = document.createElementNS(SVG_NS, "circle");
+          spec.setAttribute("cx", (-rx * 0.34).toFixed(2));
+          spec.setAttribute("cy", (-ry * 0.34).toFixed(2));
+          spec.setAttribute("r", Math.max(0.65, r * 0.26).toFixed(2));
+          spec.setAttribute("fill", "rgba(255, 255, 255, 0.94)");
+          g.appendChild(spec);
+          return g;
+        }
+
+        if (r < 13.5) {
+          const w = r * (1.18 + Math.random() * 0.32);
+          const hTop = r * (0.76 + Math.random() * 0.18);
+          const hBot = r * (0.42 + Math.random() * 0.2);
+          const indent = r * (0.12 + Math.random() * 0.22);
+          const skew = (Math.random() - 0.5) * r * 0.28;
+
+          const pathD =
+            `M ${(-w).toFixed(1)},0 ` +
+            `C ${(-w).toFixed(1)},${(-hTop * 1.15).toFixed(1)} ${(skew - w * 0.45).toFixed(1)},${(-hTop).toFixed(1)} ${skew.toFixed(1)},${(-hTop).toFixed(1)} ` +
+            `C ${(skew + w * 0.45).toFixed(1)},${(-hTop).toFixed(1)} ${w.toFixed(1)},${(-hTop * 1.1).toFixed(1)} ${w.toFixed(1)},0 ` +
+            `C ${w.toFixed(1)},${(hBot * 0.95).toFixed(1)} ${(w * 0.45).toFixed(1)},${(hBot - indent).toFixed(1)} 0,${(hBot - indent * 1.15).toFixed(1)} ` +
+            `C ${(-w * 0.45).toFixed(1)},${(hBot - indent * 0.7).toFixed(1)} ${(-w).toFixed(1)},${(hBot * 0.95).toFixed(1)} ${(-w).toFixed(1)},0 Z`;
+
+          const shell = document.createElementNS(SVG_NS, "path");
+          shell.setAttribute("d", pathD);
+          shell.setAttribute("fill", "url(#bubbleGlassGrad)");
+          shell.setAttribute("stroke", "rgba(3, 30, 44, 0.82)");
+          shell.setAttribute("stroke-width", "1.05");
+          g.appendChild(shell);
+
+          const darkArc = document.createElementNS(SVG_NS, "path");
+          darkArc.setAttribute("d", `M ${(-w * 0.65).toFixed(1)},${(hBot * 0.28).toFixed(1)} Q 0,${(hBot * 0.72 - indent).toFixed(1)} ${(w * 0.68).toFixed(1)},${(hBot * 0.22).toFixed(1)}`);
+          darkArc.setAttribute("fill", "none");
+          darkArc.setAttribute("stroke", "rgba(3, 35, 50, 0.68)");
+          darkArc.setAttribute("stroke-width", Math.max(1.1, r * 0.14).toFixed(2));
+          darkArc.setAttribute("stroke-linecap", "round");
+          g.appendChild(darkArc);
+
+          const hiArc = document.createElementNS(SVG_NS, "path");
+          hiArc.setAttribute("d", `M ${(skew - w * 0.52).toFixed(1)},${(-hTop * 0.52).toFixed(1)} Q ${(skew + w * 0.08).toFixed(1)},${(-hTop * 0.88).toFixed(1)} ${(skew + w * 0.56).toFixed(1)},${(-hTop * 0.38).toFixed(1)}`);
+          hiArc.setAttribute("fill", "none");
+          hiArc.setAttribute("stroke", "rgba(255, 255, 255, 0.92)");
+          hiArc.setAttribute("stroke-width", Math.max(1.2, r * 0.16).toFixed(2));
+          hiArc.setAttribute("stroke-linecap", "round");
+          g.appendChild(hiArc);
+          return g;
+        }
+
+        const w = r * (1.28 + Math.random() * 0.28);
+        const hTop = r * (0.95 + Math.random() * 0.22);
+        const hBot = r * (0.45 + Math.random() * 0.2);
+        const lobe1 = r * (0.18 + Math.random() * 0.22);
+        const lobe2 = r * (0.12 + Math.random() * 0.24);
+        const skew = (Math.random() - 0.5) * r * 0.32;
+
+        const domeD =
+          `M ${(-w).toFixed(1)},${(hBot * 0.15).toFixed(1)} ` +
+          `C ${(-w * 1.04).toFixed(1)},${(-hTop * 0.88).toFixed(1)} ${(skew - w * 0.46).toFixed(1)},${(-hTop * 1.05).toFixed(1)} ${skew.toFixed(1)},${(-hTop).toFixed(1)} ` +
+          `C ${(skew + w * 0.48).toFixed(1)},${(-hTop * 0.96).toFixed(1)} ${(w * 1.04).toFixed(1)},${(-hTop * 0.78).toFixed(1)} ${w.toFixed(1)},${(hBot * 0.12).toFixed(1)} ` +
+          `C ${(w * 0.92).toFixed(1)},${(hBot * 0.82).toFixed(1)} ${(w * 0.42).toFixed(1)},${(hBot - lobe1).toFixed(1)} ${(w * 0.15).toFixed(1)},${(hBot * 0.55 - lobe2).toFixed(1)} ` +
+          `C ${(-w * 0.12).toFixed(1)},${(hBot * 0.78).toFixed(1)} ${(-w * 0.46).toFixed(1)},${(hBot * 0.35 - lobe1).toFixed(1)} ${(-w * 0.72).toFixed(1)},${(hBot * 0.72).toFixed(1)} ` +
+          `C ${(-w * 0.92).toFixed(1)},${(hBot * 0.82).toFixed(1)} ${(-w).toFixed(1)},${(hBot * 0.5).toFixed(1)} ${(-w).toFixed(1)},${(hBot * 0.15).toFixed(1)} Z`;
+
+        const shell = document.createElementNS(SVG_NS, "path");
+        shell.setAttribute("d", domeD);
+        shell.setAttribute("fill", "url(#bubbleGlassGrad)");
+        shell.setAttribute("stroke", "rgba(3, 30, 44, 0.85)");
+        shell.setAttribute("stroke-width", "1.3");
+        g.appendChild(shell);
+
+        const shadowBand = document.createElementNS(SVG_NS, "path");
+        shadowBand.setAttribute("d", `M ${(-w * 0.75).toFixed(1)},${(hBot * 0.42).toFixed(1)} Q ${(-w * 0.25).toFixed(1)},${(hBot * 0.02).toFixed(1)} ${(w * 0.12).toFixed(1)},${(hBot * 0.32).toFixed(1)} Q ${(w * 0.48).toFixed(1)},${(hBot * 0.65).toFixed(1)} ${(w * 0.78).toFixed(1)},${(hBot * 0.25).toFixed(1)}`);
+        shadowBand.setAttribute("fill", "none");
+        shadowBand.setAttribute("stroke", "rgba(3, 32, 46, 0.72)");
+        shadowBand.setAttribute("stroke-width", Math.max(1.8, r * 0.13).toFixed(1));
+        shadowBand.setAttribute("stroke-linecap", "round");
+        g.appendChild(shadowBand);
+
+        const mainSpec = document.createElementNS(SVG_NS, "path");
+        mainSpec.setAttribute("d", `M ${(skew + w * 0.08).toFixed(1)},${(-hTop * 0.84).toFixed(1)} C ${(skew + w * 0.46).toFixed(1)},${(-hTop * 0.78).toFixed(1)} ${(w * 0.8).toFixed(1)},${(-hTop * 0.45).toFixed(1)} ${(w * 0.84).toFixed(1)},${(-hTop * 0.06).toFixed(1)}`);
+        mainSpec.setAttribute("fill", "none");
+        mainSpec.setAttribute("stroke", "rgba(255, 255, 255, 0.94)");
+        mainSpec.setAttribute("stroke-width", Math.max(2, r * 0.17).toFixed(1));
+        mainSpec.setAttribute("stroke-linecap", "round");
+        g.appendChild(mainSpec);
+
+        return g;
+      }
+
+      function spawnBubble({ x, y, r, vx, vy, wobbleAmp, wobbleFreq, delay = 0, maxLife = 3600 }) {
+        const el = createHyperBubbleNode(r);
+        el.style.opacity = "0";
+        bubblesLayer.appendChild(el);
+        activeBubbles.push({
+          el, x, y, r, vx, vy, wobbleAmp, wobbleFreq,
+          phase: Math.random() * Math.PI * 2,
+          deformPhase: Math.random() * Math.PI * 2,
+          age: -delay, maxLife
+        });
+        ensureBubbleLoop();
+      }
+
+      function ensureBubbleLoop() {
+        if (bubbleEngineId) return;
+        lastBubbleTime = performance.now();
+
+        function tick(now) {
+          const dt = Math.min((now - lastBubbleTime) / 16.667, 2.5);
+          lastBubbleTime = now;
+
+          for (let i = activeBubbles.length - 1; i >= 0; i--) {
+            const b = activeBubbles[i];
+            b.age += dt * 16.667;
+            if (b.age < 0) continue;
+
+            b.vx *= Math.pow(0.976, dt);
+            b.vy = Math.min(b.vy * Math.pow(1.007, dt), 5.8);
+            b.x += b.vx * dt;
+            b.y -= b.vy * dt;
+
+            const drawX = b.x + Math.sin(b.age * b.wobbleFreq + b.phase) * b.wobbleAmp;
+            const deformStrength = b.r >= 5 ? Math.min(0.14, b.r * 0.0075) : 0.03;
+            const squish = Math.sin(b.age * 0.0075 + b.deformPhase) * deformStrength;
+            const sx = (1 + squish).toFixed(3);
+            const sy = (1 - squish * 0.8).toFixed(3);
+            const tilt = (Math.cos(b.age * b.wobbleFreq + b.phase) * (b.r > 8 ? 9 : 5)).toFixed(1);
+
+            const fadeIn = Math.min(b.age / 130, 1);
+            const topFade = b.y < 140 ? Math.max(0, b.y / 140) : 1;
+            const lifeFade = b.age > b.maxLife - 500 ? Math.max(0, (b.maxLife - b.age) / 500) : 1;
+            const alpha = fadeIn * topFade * lifeFade;
+
+            b.el.setAttribute("transform", `translate(${drawX.toFixed(1)}, ${b.y.toFixed(1)}) rotate(${tilt}) scale(${sx}, ${sy})`);
+            b.el.style.opacity = alpha.toFixed(2);
+
+            if (b.y < -60 || b.age >= b.maxLife || alpha <= 0.005) {
+              b.el.remove();
+              activeBubbles.splice(i, 1);
+            }
+          }
+
+          if (activeBubbles.length > 0) {
+            bubbleEngineId = requestAnimationFrame(tick);
+          } else {
+            bubbleEngineId = null;
+          }
+        }
+        bubbleEngineId = requestAnimationFrame(tick);
+      }
+
+      function buildPuzzlePieces() {
+        puzzleGroup.innerHTML = "";
+        puzzleGroup.setAttribute("filter", "url(#pieceGlow)");
+        puzzleGroup.style.opacity = "1";
+        dissolveMap.setAttribute("scale", "0");
+        snapRipple.style.opacity = "0";
+        snapRipple.setAttribute("r", "20");
+
+        return PIECES_CONFIG.map((cfg) => {
+          const g = document.createElementNS(SVG_NS, "g");
+          g.setAttribute("class", "puzzle-piece");
+          g.style.opacity = "0";
+
+          const path = document.createElementNS(SVG_NS, "path");
+          path.setAttribute("class", "piece-shape");
+          path.setAttribute("d", createPiecePath(cfg.left, cfg.right, cfg.roundLeft, cfg.roundRight));
+
+          const text = document.createElementNS(SVG_NS, "text");
+          text.setAttribute("class", "piece-letter");
+          text.setAttribute("x", cfg.letterX);
+          text.setAttribute("y", "46");
+          text.textContent = cfg.letter;
+
+          g.appendChild(path);
+          g.appendChild(text);
+          puzzleGroup.appendChild(g);
+
+          const sx = cfg.tx + cfg.startDx;
+          const sy = cfg.ty + cfg.startDy;
+          g.setAttribute("transform", `translate(${sx}, ${sy}) rotate(${cfg.sRot} 45 45)`);
+          return { cfg, el: g };
+        });
+      }
+
+      function animatePieceFloatUp(pieceObj, onSettled) {
+        const { cfg, el } = pieceObj;
+        const startTime = performance.now();
+        const sx = cfg.tx + cfg.startDx;
+        const sy = cfg.ty + cfg.startDy;
+
+        function step(now) {
+          const p = Math.min((now - startTime) / cfg.duration, 1);
+          const eased = easeOutPower(p, cfg.easePow);
+          const easedX = easeOutPower(p, cfg.easePow + 0.3);
+          const arcOffset = Math.sin(p * Math.PI) * cfg.arcX;
+
+          const x = sx + (cfg.tx - sx) * easedX + arcOffset;
+          const y = sy + (cfg.ty - sy) * eased;
+          const rot = cfg.sRot * (1 - eased);
+
+          el.style.opacity = Math.min(1, p * 3).toFixed(2);
+          el.setAttribute("transform", `translate(${x.toFixed(2)}, ${y.toFixed(2)}) rotate(${rot.toFixed(2)} 45 45)`);
+
+          if (p < 1) {
+            activeFrames.push(requestAnimationFrame(step));
+          } else {
+            el.setAttribute("transform", `translate(${cfg.tx}, ${cfg.ty}) rotate(0 45 45)`);
+            if (onSettled) onSettled();
+          }
+        }
+        activeFrames.push(requestAnimationFrame(step));
+      }
+
+      function triggerCompletionRipple() {
+        const start = performance.now();
+        function step(now) {
+          const p = Math.min((now - start) / 560, 1);
+          const eased = easeOutPower(p, 3);
+          snapRipple.setAttribute("r", (20 + eased * 195).toFixed(1));
+          snapRipple.style.opacity = ((1 - p) * 0.65).toFixed(2);
+          if (p < 1) activeFrames.push(requestAnimationFrame(step));
+        }
+        activeFrames.push(requestAnimationFrame(step));
+      }
+
+      function dissolveIntoBubbles(pieces) {
+        puzzleGroup.setAttribute("filter", "url(#dissolveFilter)");
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const groupRect = puzzleGroup.getBoundingClientRect();
+        const centerX = groupRect.left + groupRect.width / 2;
+        const centerY = groupRect.top + groupRect.height / 2;
+
+        pieces.forEach(({ el }) => {
+          const rect = el.getBoundingClientRect();
+          for (let i = 0; i < 20; i++) {
+            const u = Math.random();
+            const r = u < 0.52 ? (1.6 + Math.random() * 3.1) : u < 0.86 ? (5.2 + Math.random() * 7.8) : (14.5 + Math.random() * 11.5);
+            const cx = rect.left + rect.width * (-0.25 + Math.random() * 1.5);
+            const cy = rect.top + rect.height * (-0.2 + Math.random() * 1.4);
+            const dxFromCenter = (cx - centerX) / Math.max(120, groupRect.width);
+            const outwardVx = dxFromCenter * (2.6 + Math.random() * 3.0) + (Math.random() - 0.5) * 3.6;
+            const baseDelay = Math.random() * 240;
+
+            spawnBubble({
+              x: cx, y: cy, r, vx: outwardVx,
+              vy: 1.3 + Math.random() * 2.0 + r * 0.065,
+              wobbleAmp: 6 + Math.random() * 18,
+              wobbleFreq: 0.0028 + Math.random() * 0.004,
+              delay: baseDelay, maxLife: 3500 + Math.random() * 900
+            });
+
+            if (r >= 14.5) {
+              const satCount = 2 + Math.floor(Math.random() * 3);
+              for (let s = 0; s < satCount; s++) {
+                spawnBubble({
+                  x: cx + (Math.random() - 0.5) * r * 2.1,
+                  y: cy + r * (0.4 + Math.random() * 0.9),
+                  r: 1.5 + Math.random() * 2.6,
+                  vx: outwardVx + (Math.random() - 0.5) * 0.9,
+                  vy: 1.1 + Math.random() * 1.6,
+                  wobbleAmp: 5 + Math.random() * 10,
+                  wobbleFreq: 0.0035 + Math.random() * 0.004,
+                  delay: baseDelay + 40, maxLife: 3200
+                });
+              }
+            }
+          }
+        });
+
+        for (let i = 0; i < 40; i++) {
+          spawnBubble({
+            x: vw * (0.06 + Math.random() * 0.88),
+            y: centerY + (Math.random() - 0.35) * (vh * 0.5),
+            r: 1.4 + Math.random() * 5.6,
+            vx: (Math.random() - 0.5) * 1.8,
+            vy: 1.0 + Math.random() * 1.9,
+            wobbleAmp: 8 + Math.random() * 20,
+            wobbleFreq: 0.0025 + Math.random() * 0.0035,
+            delay: Math.random() * 420, maxLife: 3700
+          });
+        }
+
+        const start = performance.now();
+        const dissolveDuration = 680;
+        let overlayDismissed = false;
+
+        function animateDissolve(now) {
+          const elapsed = now - start;
+          if (elapsed <= dissolveDuration) {
+            const p = elapsed / dissolveDuration;
+            dissolveMap.setAttribute("scale", (p * 64).toFixed(1));
+            puzzleGroup.style.opacity = Math.max(0, 1 - Math.pow(p, 1.25)).toFixed(2);
+          } else {
+            puzzleGroup.style.opacity = "0";
+          }
+
+          if (!overlayDismissed && elapsed > 1450) {
+            overlayDismissed = true;
+            overlay.classList.add("is-hidden");
+            landingPage.classList.add("is-active");
+          } else {
+            // keep ticking until the overlay is gone, not just until the dissolve ends
+            activeFrames.push(requestAnimationFrame(animateDissolve));
+          }
+        }
+        activeFrames.push(requestAnimationFrame(animateDissolve));
+      }
+
+      function startLoader() {
+        clearLoaderAnimations();
+        bubblesLayer.innerHTML = "";
+        overlay.classList.remove("is-hidden");
+        landingPage.classList.remove("is-active");
+
+        const pieces = buildPuzzlePieces();
+
+        pieces.forEach((pieceObj) => {
+          const t = setTimeout(() => {
+            animatePieceFloatUp(pieceObj, () => {
+              if (pieceObj.cfg.isFinal) {
+                triggerCompletionRipple();
+                // Slight ~1 second pause so users can clearly read "AMY CUI" before bubble dissolve
+                const pauseTimer = setTimeout(() => {
+                  dissolveIntoBubbles(pieces);
+                }, 980);
+                activeTimers.push(pauseTimer);
+              }
+            });
+          }, pieceObj.cfg.delay);
+          activeTimers.push(t);
+        });
+      }
+
+      startLoader();
+      replayBtn.addEventListener("click", startLoader);
+
+      /* =======================================================
+         2. DIALOGUE HUD & 3D SCENE BRIDGE
+         ======================================================= */
+      const portal = (window.__portal = window.__portal || {});
+      const statusText = document.getElementById("hud-status-text");
+      const hudCards = document.querySelectorAll(".hud-card");
+      const LABELS = {
+        surface: "Swimming toward The Surface...",
+        reef: "Swimming toward The Reef...",
+        abyss: "Diving into The Abyss..."
+      };
+
+      // go = true follows the path (from the 3D sign or the 1/2/3 keys)
+      function selectChoice(key, go = false) {
+        hudCards.forEach((c) => c.classList.toggle("is-selected", c.dataset.choice === key));
+        statusText.textContent = LABELS[key];
+        if (portal.onChange) portal.onChange(key);
+        if (go) location.href = document.querySelector(`.hud-card[data-choice="${key}"]`).href;
+      }
+      portal.selectChoice = selectChoice;
+      portal.openResume = () => window.open("assets/resume.pdf", "_blank", "noopener");
+
+      hudCards.forEach((card) => {
+        card.addEventListener("mouseenter", () => selectChoice(card.dataset.choice));
+        card.addEventListener("focus", () => selectChoice(card.dataset.choice));
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (!overlay.classList.contains("is-hidden") || e.metaKey || e.ctrlKey || e.altKey) return;
+        const key = { 1: "surface", 2: "reef", 3: "abyss" }[e.key];
+        if (key) selectChoice(key, true);
+      });
+    })();
+  </script>
+  <script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const canvas = document.getElementById('scene');
+const portal = window.__portal || {};
+const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  canvas.remove(); // CSS gradient behind stays as the fallback
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const FOG = new THREE.Color('#06374d');
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(FOG, 0.042);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
+const camBase = new THREE.Vector3(0, 1.6, 10);
+const camTarget = new THREE.Vector3(0, 0.95, 0);
+
+const uTime = { value: 0 };
+
+/* ---------- noise ---------- */
+function hash(x, y) {
+  let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+function noise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, oct = 4) {
+  let s = 0, a = 0.5, f = 1;
+  for (let i = 0; i < oct; i++) { s += a * noise(x * f, y * f); f *= 2.03; a *= 0.5; }
+  return s;
+}
+const rand = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+
+/* ---------- caustics patch for lit materials ---------- */
+const CAUSTIC_GLSL = `
+uniform float uTime; uniform float uCaustic;
+varying vec3 vCWorld; varying float vCUp;
+float caustic(vec2 uv, float time){
+  vec2 p = mod(uv*6.28318, 6.28318) - 250.0;
+  vec2 i = p; float c = 1.0; float inten = .005;
+  for (int n = 0; n < 4; n++) {
+    float t = time * (1.0 - (3.5 / float(n+1)));
+    i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+    c += 1.0/length(vec2(p.x / (sin(i.x+t)/inten), p.y / (cos(i.y+t)/inten)));
+  }
+  c /= 4.0; c = 1.17 - pow(c, 1.4);
+  return pow(abs(c), 8.0);
+}
+`;
+function withCaustics(mat, strength = 1) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uTime = uTime;
+    sh.uniforms.uCaustic = { value: strength };
+    sh.vertexShader = 'varying vec3 vCWorld; varying float vCUp;\n' + sh.vertexShader.replace(
+      '#include <project_vertex>',
+      `#include <project_vertex>
+       vCWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+       vCUp = normalize(mat3(modelMatrix) * objectNormal).y;`);
+    sh.fragmentShader = CAUSTIC_GLSL + sh.fragmentShader.replace(
+      '#include <opaque_fragment>',
+      `float cz = caustic(vCWorld.xz*0.16, uTime*0.55) + 0.6*caustic(vCWorld.xz*0.29 + 3.1, uTime*0.4);
+       float depthFade = clamp(1.0 - (2.0 - vCWorld.y)*0.08, 0.35, 1.2);
+       outgoingLight += diffuseColor.rgb * uCaustic * cz * depthFade * smoothstep(-0.3, 0.9, vCUp) * vec3(0.55, 0.95, 1.0);
+       #include <opaque_fragment>`);
+  };
+  return mat;
+}
+
+/* ---------- canvas textures ---------- */
+function canvasTex(w, h, draw, srgb = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  return t;
+}
+function sandDraw(g, w, h) {
+  const img = g.createImageData(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const n = fbm(x * 0.05, y * 0.05, 3) * 0.6 + hash(x, y) * 0.4;
+    const shell = hash(x * 3 + 11, y * 7) > 0.996 ? 60 : 0;
+    const v = 120 + n * 90 + shell;
+    const i = (y * w + x) * 4;
+    img.data[i] = v; img.data[i + 1] = v * 0.94; img.data[i + 2] = v * 0.8; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+}
+function woodDraw(horizontal, stainBottom) {
+  return (g, w, h) => {
+    const img = g.createImageData(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const a = horizontal ? x : y, b = horizontal ? y : x;
+      const grain = Math.sin(b * 0.09 + fbm(a * 0.004, b * 0.03, 4) * 9) * 0.5 + 0.5;
+      const fine = hash(a >> 2, b) * 0.25;
+      const rot = fbm(a * 0.01 + 40, b * 0.02, 4);
+      let v = 0.35 + grain * 0.3 + fine - Math.max(0, rot - 0.55) * 1.4;
+      if (stainBottom) v *= 0.45 + 0.55 * Math.min(1, (h - y) / (h * 0.35));
+      const i = (y * w + x) * 4;
+      img.data[i] = 110 * v; img.data[i + 1] = 78 * v; img.data[i + 2] = 52 * v; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  };
+}
+
+/* ---------- sky / water volume ---------- */
+const sky = new THREE.Mesh(
+  new THREE.SphereGeometry(200, 48, 24),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: { uTime, uTop: { value: new THREE.Color('#2a9cc0') }, uHorizon: { value: FOG.clone() }, uBottom: { value: new THREE.Color('#010a10') } },
+    vertexShader: `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uTop, uHorizon, uBottom; varying vec3 vDir;
+      void main(){
+        float h = vDir.y;
+        vec3 col = mix(uHorizon, uTop, smoothstep(0.02, 0.95, h));
+        col = mix(col, uBottom, smoothstep(0.0, -0.35, h));
+        float sun = pow(max(dot(vDir, normalize(vec3(0.15, 1.0, -0.35))), 0.0), 10.0);
+        col += vec3(0.25, 0.65, 0.75) * sun;
+        float rip = sin(vDir.x*70.0 + uTime*0.7 + sin(vDir.z*30.0)) * sin(vDir.z*64.0 - uTime*0.5);
+        col += vec3(0.08, 0.22, 0.28) * smoothstep(0.55, 1.0, h) * rip * 0.35;
+        gl_FragColor = vec4(col, 1.0);
+      }`
+  })
+);
+sky.renderOrder = -1;
+scene.add(sky);
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight('#5fd0ef', '#04121a', 0.9));
+const sun = new THREE.DirectionalLight('#a6ecff', 2.4);
+sun.position.set(3.5, 18, 5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 4;
+scene.add(sun);
+
+/* ---------- seabed ---------- */
+function groundHeight(x, z) {
+  const d = Math.hypot(x, z);
+  let h = (fbm(x * 0.05 + 10, z * 0.05, 4) - 0.5) * 1.6;
+  h += Math.sin(x * 2.1 + fbm(x * 0.2, z * 0.2) * 4) * 0.025;            // sand ripples
+  h += Math.max(0, d - 16) * 0.12 * fbm(x * 0.03, z * 0.03 + 5, 3) * 2;    // far ridges
+  h *= THREE.MathUtils.smoothstep(d, 1.5, 7) * 0.8 + 0.2;                   // flatter around the sign
+  return h;
+}
+{
+  const geo = new THREE.PlaneGeometry(240, 240, 260, 260);
+  geo.rotateX(-Math.PI / 2);
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, groundHeight(p.getX(i), p.getZ(i)));
+  geo.computeVertexNormals();
+  const tex = canvasTex(512, 512, sandDraw);
+  tex.repeat.set(70, 70);
+  const bump = canvasTex(512, 512, sandDraw, false);
+  bump.repeat.set(70, 70);
+  const sand = new THREE.Mesh(geo, withCaustics(new THREE.MeshStandardMaterial({
+    map: tex, bumpMap: bump, bumpScale: 1.2, roughness: 0.96, color: '#a89e86'
+  }), 2.4));
+  sand.receiveShadow = true;
+  scene.add(sand);
+}
+
+/* ---------- rocks & distant arches ---------- */
+const rockMat = withCaustics(new THREE.MeshStandardMaterial({ color: '#43514f', roughness: 0.92, flatShading: false }), 1.1);
+function makeRock(seed, detail = 4) {
+  let g = new THREE.IcosahedronGeometry(1, detail);
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const n = fbm(v.x * 1.6 + seed, v.y * 1.6 + v.z * 1.3 + seed * 2, 5);
+    v.multiplyScalar(0.7 + n * 0.75);
+    if (v.y < -0.25) v.y = -0.25 + (v.y + 0.25) * 0.2;
+    p.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, rockMat);
+  m.castShadow = m.receiveShadow = true;
+  return m;
+}
+for (let i = 0; i < 34; i++) {
+  const ang = rand() * Math.PI * 2, dist = 4.5 + rand() * 22;
+  const x = Math.cos(ang) * dist, z = Math.sin(ang) * dist - 4;
+  if (z > 1.5 || Math.hypot(x - 3.9, z + 1.2) < 3 || (Math.abs(x) < 3.5 && z > -4)) continue; // keep sign, clam and foreground clear
+  const r = makeRock(i * 3.7, dist > 14 ? 3 : 4);
+  const s = 0.35 + rand() * (dist > 12 ? 2.4 : 1.1);
+  r.scale.set(s * (1 + rand() * 0.6), s * (0.5 + rand() * 0.6), s);
+  r.rotation.y = rand() * 6.28;
+  r.position.set(x, groundHeight(x, z) - 0.05, z);
+  scene.add(r);
+}
+// distant rock arch + pillars for scale
+{
+  let g = new THREE.TorusGeometry(7, 1.6, 16, 60, Math.PI);
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  g = mergeVertices(g);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const n = fbm(v.x * 0.35, v.y * 0.35 + v.z * 0.4, 4);
+    v.addScaledVector(v.clone().setZ(0).normalize(), (n - 0.5) * 1.8);
+    v.z += (n - 0.5) * 1.5;
+    p.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  const arch = new THREE.Mesh(g, rockMat);
+  arch.position.set(-9, -1, -24);
+  arch.rotation.y = 0.35;
+  scene.add(arch);
+  [[11, -20, 7], [15, -27, 11], [-21, -16, 6]].forEach(([x, z, h], i) => {
+    const r = makeRock(50 + i, 3);
+    r.scale.set(1.6, h, 1.8);
+    r.position.set(x, groundHeight(x, z) + h * 0.35, z);
+    scene.add(r);
+  });
+}
+
+/* ---------- kelp & algae ---------- */
+const kelpMat = new THREE.MeshStandardMaterial({ color: '#4f7a42', roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.88 });
+kelpMat.onBeforeCompile = (sh) => {
+  sh.uniforms.uTime = uTime;
+  sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `
+    #include <begin_vertex>
+    float kh = uv.y;
+    vec4 ip = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+    float ph = ip.x * 0.7 + ip.z * 0.5;
+    transformed.x += sin(uTime * 0.9 + ph + kh * 2.2) * kh * kh * 0.5;
+    transformed.z += cos(uTime * 0.7 + ph * 1.3 + kh * 1.6) * kh * kh * 0.3;`);
+};
+{
+  const blade = new THREE.PlaneGeometry(0.16, 1, 1, 24);
+  blade.translate(0, 0.5, 0);
+  const p = blade.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i);
+    p.setX(i, p.getX(i) * (1 - y * 0.55) * (1 + Math.sin(y * 20) * 0.12));
+  }
+  blade.computeVertexNormals();
+  const spots = [];
+  const cluster = (cx, cz, n, hMin, hMax, spread) => {
+    for (let i = 0; i < n; i++) spots.push([cx + (rand() - 0.5) * spread, cz + (rand() - 0.5) * spread, hMin + rand() * (hMax - hMin)]);
+  };
+  cluster(-6, -4, 16, 2.5, 6.5, 2.6);
+  cluster(-10, -8, 16, 3, 8, 3.5);
+  cluster(7.5, -5.5, 14, 2.5, 6, 2.8);
+  cluster(11, -11, 14, 3, 8, 3.5);
+  cluster(-3.8, -1.2, 6, 1, 2.2, 1.2);
+  cluster(0, 0, 14, 0.25, 0.7, 0.7);       // algae at the sign base
+  cluster(3.9, -1.2, 8, 0.2, 0.5, 1.8);    // around the clam
+  cluster(-2.5, 2.2, 10, 0.3, 0.9, 1.5);
+  const kelp = new THREE.InstancedMesh(blade, kelpMat, spots.length);
+  const d = new THREE.Object3D();
+  spots.forEach(([x, z, h], i) => {
+    d.position.set(x, groundHeight(x, z) - 0.05, z);
+    d.rotation.set(0, rand() * 6.28, (rand() - 0.5) * 0.15);
+    d.scale.set(0.8 + rand() * 0.7, h, 1);
+    d.updateMatrix();
+    kelp.setMatrixAt(i, d.matrix);
+  });
+  kelp.castShadow = true;
+  scene.add(kelp);
+}
+// tube sponges
+{
+  const tube = new THREE.CylinderGeometry(0.07, 0.1, 0.55, 12, 1, true);
+  tube.translate(0, 0.27, 0);
+  const mat = withCaustics(new THREE.MeshStandardMaterial({ color: '#8a4a5c', roughness: 0.8, side: THREE.DoubleSide, emissive: '#2a0c18', emissiveIntensity: 0.4 }), 0.8);
+  [[-3.4, -0.6], [4.8, -1.8], [-6.5, 1], [2.2, -3.5]].forEach(([cx, cz]) => {
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(tube, mat);
+      const x = cx + (rand() - 0.5) * 0.6, z = cz + (rand() - 0.5) * 0.6;
+      m.position.set(x, groundHeight(x, z) - 0.03, z);
+      m.scale.setScalar(0.6 + rand() * 0.9);
+      m.rotation.set((rand() - 0.5) * 0.4, 0, (rand() - 0.5) * 0.4);
+      m.castShadow = true;
+      scene.add(m);
+    }
+  });
+}
+
+/* ---------- god rays ---------- */
+const rayMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+  uniforms: { uTime, uOpacity: { value: 0.16 }, uColor: { value: new THREE.Color('#8cefff') } },
+  vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    void main(){ vUv = uv; vN = normalize(normalMatrix*normal); vec4 mv = modelViewMatrix*vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }`,
+  fragmentShader: `uniform float uTime, uOpacity; uniform vec3 uColor; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    void main(){
+      float edge = pow(abs(dot(vN, vV)), 2.0);
+      float fade = smoothstep(0.0, 0.55, vUv.y) * smoothstep(1.0, 0.8, vUv.y);
+      float streak = 0.55 + 0.45 * sin(vUv.x*38.0 + uTime*0.35) * sin(vUv.x*15.0 - uTime*0.22);
+      gl_FragColor = vec4(uColor, uOpacity * edge * fade * streak);
+    }`
+});
+const rays = [];
+[[-6, -7, 0.22, 1.0], [-1.5, -4, 0.08, 1.3], [3.5, -6, -0.12, 1.0], [8.5, -10, -0.2, 0.8], [-12, -14, 0.25, 0.7]].forEach(([x, z, tilt, w], i) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.5 * w, 2.6 * w, 30, 24, 1, true), rayMat.clone());
+  m.material.uniforms.uTime = uTime;
+  m.position.set(x, 13.5, z);
+  m.rotation.set(0.12, 0, tilt);
+  m.userData.phase = i * 1.7;
+  rays.push(m);
+  scene.add(m);
+});
+
+/* ---------- signpost ---------- */
+const woodPostTex = canvasTex(256, 1024, woodDraw(false, true));
+const woodPlankTex = canvasTex(1024, 256, woodDraw(true, false));
+woodPlankTex.repeat.set(0.42, 2);
+woodPlankTex.offset.set(0.1, 0.5);
+const sign = new THREE.Group();
+sign.rotation.z = 0.025;
+scene.add(sign);
+{
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.13, 0.155, 4.5, 14, 20),
+    withCaustics(new THREE.MeshStandardMaterial({ map: woodPostTex, bumpMap: woodPostTex, bumpScale: 2, roughness: 0.9 }), 0.9)
+  );
+  const p = post.geometry.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const n = 1 + (fbm(p.getY(i) * 1.5, Math.atan2(p.getZ(i), p.getX(i)) * 2) - 0.5) * 0.18;
+    p.setX(i, p.getX(i) * n); p.setZ(i, p.getZ(i) * n);
+  }
+  post.geometry.computeVertexNormals();
+  post.position.y = 2.0;
+  post.castShadow = post.receiveShadow = true;
+  sign.add(post);
+
+  // beacon
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 16), new THREE.MeshStandardMaterial({ color: '#4a4436', metalness: 0.8, roughness: 0.55 }));
+  collar.position.y = 4.28;
+  sign.add(collar);
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(0.17, 32, 16), new THREE.MeshStandardMaterial({ color: '#ffcf6b', emissive: '#ffae3d', emissiveIntensity: 5 }));
+  orb.position.y = 4.48;
+  sign.add(orb);
+  const beacon = new THREE.PointLight('#ffb44f', 9, 9, 2);
+  beacon.position.y = 4.5;
+  sign.add(beacon);
+  sign.userData.beacon = beacon;
+  sign.userData.orb = orb;
+}
+
+async function makeLabel(text, w, h, color, font) {
+  await document.fonts.load(font).catch(() => {});
+  return canvasTex(w, h, (g) => {
+    g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = color; g.fillText(text, w / 2, h / 2 + 4);
+    g.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < 900; i++) { g.globalAlpha = rand() * 0.6; g.fillRect(rand() * w, rand() * h, 1 + rand() * 4, 1 + rand() * 3); }
+  });
+}
+
+const planks = {};
+const pickables = [];
+const hullColor = new THREE.Color().setRGB(0.35, 2.4, 2.1); // HDR so it blooms
+async function makePlank(choice, label, dir, y, tilt) {
+  const L = 2.45, H = 0.5;
+  const s = new THREE.Shape();
+  s.moveTo(-0.12 * dir, -H / 2);
+  s.lineTo((L - 0.38) * dir, -H / 2);
+  s.lineTo(L * dir, 0);
+  s.lineTo((L - 0.38) * dir, H / 2);
+  s.lineTo(-0.12 * dir, H / 2);
+  s.closePath();
+  const geo = new THREE.ExtrudeGeometry(s, { depth: 0.08, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, bevelSegments: 2 });
+  const mat = withCaustics(new THREE.MeshStandardMaterial({ map: woodPlankTex, bumpMap: woodPlankTex, bumpScale: 2, roughness: 0.88, emissive: '#000000' }), 0.9);
+  const plank = new THREE.Mesh(geo, mat);
+  plank.castShadow = plank.receiveShadow = true;
+
+  // outline hull for the holographic highlight
+  geo.computeBoundingBox();
+  const c = geo.boundingBox.getCenter(new THREE.Vector3());
+  const hullGeo = geo.clone().translate(-c.x, -c.y, -c.z).scale(1.035, 1.16, 1.5).translate(c.x, c.y, c.z);
+  const hull = new THREE.Mesh(hullGeo, new THREE.MeshBasicMaterial({ color: hullColor, side: THREE.BackSide, transparent: true, opacity: 0, depthWrite: false, fog: false }));
+
+  const tex = await makeLabel(label, 1024, 180, '#fff3da', '700 104px "DM Sans", sans-serif');
+  const text = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.35), withCaustics(new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#ffffff', emissiveIntensity: 0.22, transparent: true, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2 }), 0.6));
+  text.position.set(1.08 * dir, 0, 0.098);
+
+  const g = new THREE.Group();
+  g.add(plank, hull, text);
+  g.position.set(0, y, 0.15);
+  g.rotation.z = tilt;
+  sign.add(g);
+
+  [plank, text].forEach((m) => { m.userData.choice = choice; pickables.push(m); });
+  planks[choice] = { mat, hull, glow: 0 };
+}
+await Promise.all([
+  makePlank('surface', 'THE SURFACE', 1, 3.45, 0.19),
+  makePlank('reef', 'THE REEF', -1, 2.7, -0.02),
+  makePlank('abyss', 'THE ABYSS', 1, 1.95, -0.19)
+]);
+
+// barnacles on the post and plank roots
+{
+  const bg = new THREE.CylinderGeometry(0.014, 0.04, 0.035, 8);
+  bg.translate(0, 0.017, 0);
+  const bm = new THREE.InstancedMesh(bg, new THREE.MeshStandardMaterial({ color: '#8d9188', roughness: 1 }), 60);
+  const d = new THREE.Object3D(), out = new THREE.Vector3();
+  for (let i = 0; i < 60; i++) {
+    const a = -Math.PI * 0.1 + rand() * Math.PI * 1.2;
+    const y = Math.pow(rand(), 1.8) * 2.3;
+    const r = 0.15;
+    d.position.set(Math.cos(a) * r, y, Math.sin(a) * r);
+    out.set(Math.cos(a) * 2, y, Math.sin(a) * 2);
+    d.lookAt(out);
+    d.rotateX(Math.PI / 2);
+    d.scale.setScalar(0.4 + rand() * 0.6);
+    d.updateMatrix();
+    bm.setMatrixAt(i, d.matrix);
+  }
+  bm.castShadow = true;
+  sign.add(bm);
+}
+
+/* ---------- clam & pearl ---------- */
+const clam = new THREE.Group();
+clam.position.set(3.9, groundHeight(3.9, -1.2) + 0.14, -1.2);
+clam.rotation.y = -0.5;
+clam.scale.setScalar(1.2);
+scene.add(clam);
+let topShell, pearl, pearlLight;
+{
+  const shellGeo = (top) => {
+    const g = new THREE.SphereGeometry(0.85, 64, 24, 0, Math.PI * 2, top ? 0 : Math.PI / 2, Math.PI / 2);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const ridge = 1 + Math.abs(Math.sin(Math.atan2(z, x) * 11)) * 0.06 * Math.min(1, Math.abs(y) * 3);
+      const scallop = 1 + Math.sin(Math.atan2(z, x) * 11) * 0.03 * (1 - Math.abs(y) / 0.85);
+      p.setXYZ(i, x * ridge * scallop, y * 0.42, z * ridge * 0.85);
+    }
+    g.computeVertexNormals();
+    return g;
+  };
+  const outer = withCaustics(new THREE.MeshStandardMaterial({ color: '#8f645d', roughness: 0.55, bumpMap: woodPostTex, bumpScale: 0.6 }), 1);
+  const nacre = new THREE.MeshPhysicalMaterial({ color: '#c9a7a2', roughness: 0.35, iridescence: 0.8, iridescenceIOR: 1.4, side: THREE.BackSide });
+
+  const lower = new THREE.Group();
+  const lo = new THREE.Mesh(shellGeo(false), outer);
+  const li = new THREE.Mesh(shellGeo(false), nacre); li.scale.setScalar(0.97);
+  lo.castShadow = true;
+  lower.add(lo, li);
+  clam.add(lower);
+
+  topShell = new THREE.Group();
+  topShell.position.z = -0.72; // hinge at the back
+  const to = new THREE.Mesh(shellGeo(true), outer);
+  const ti = new THREE.Mesh(shellGeo(true), nacre); ti.scale.setScalar(0.97);
+  to.position.z = ti.position.z = 0.72;
+  to.castShadow = true;
+  topShell.add(to, ti);
+  topShell.rotation.x = -0.95;
+  clam.add(topShell);
+
+  pearl = new THREE.Mesh(
+    new THREE.SphereGeometry(0.34, 48, 24),
+    new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.12, clearcoat: 1, iridescence: 0.7, emissive: '#7fe6ff', emissiveIntensity: 0.8 })
+  );
+  pearl.position.set(0, 0.3, 0.05);
+  clam.add(pearl);
+  pearlLight = new THREE.PointLight('#9ff4ff', 2.5, 4, 2);
+  pearlLight.position.set(0, 0.5, 0.2);
+  clam.add(pearlLight);
+
+  const labelTex = await makeLabel('RESUME', 512, 160, '#06303e', '700 92px "DM Sans", sans-serif');
+  const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthTest: false }));
+  label.scale.set(0.6, 0.19, 1);
+  label.renderOrder = 5;
+  label.position.set(0, 0.3, 0.4);
+  clam.add(label);
+
+  [lo, to, pearl, label].forEach((m) => { m.userData.resume = true; pickables.push(m); });
+}
+
+/* ---------- marine snow (3 depth layers, near one as bokeh) ---------- */
+function snowLayer(count, box, size, soft, opacity) {
+  const pos = new Float32Array(count * 3), seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3] = box[0] + rand() * (box[1] - box[0]);
+    pos[i * 3 + 1] = rand() * 20;
+    pos[i * 3 + 2] = box[2] + rand() * (box[3] - box[2]);
+    seed[i] = rand();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    uniforms: { uTime, uSize: { value: size }, uPR: { value: renderer.getPixelRatio() }, uSoft: { value: soft }, uOpacity: { value: opacity } },
+    vertexShader: `uniform float uTime, uSize, uPR; attribute float aSeed; varying float vA;
+      void main(){
+        vec3 p = position;
+        p.y = mod(p.y - uTime*(0.04 + aSeed*0.07), 20.0) - 5.0;
+        p.x += sin(uTime*0.25 + aSeed*30.0) * 0.35;
+        p.z += cos(uTime*0.2 + aSeed*17.0) * 0.25;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        float d = -mv.z;
+        gl_PointSize = uSize * uPR * (0.5 + aSeed) * (10.0 / d);
+        vA = exp(-pow(d * 0.045, 2.0)) * smoothstep(0.4, 1.5, d) * (0.4 + 0.6 * aSeed);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `uniform float uSoft, uOpacity; varying float vA;
+      void main(){
+        float r = length(gl_PointCoord - 0.5);
+        float a = 1.0 - smoothstep(0.5 * uSoft, 0.5, r);
+        gl_FragColor = vec4(vec3(0.75, 0.95, 1.0), a * vA * uOpacity);
+      }`
+  });
+  const pts = new THREE.Points(g, m);
+  pts.frustumCulled = false;
+  scene.add(pts);
+  return m;
+}
+const snowMats = [
+  snowLayer(2200, [-28, 28, -35, 3], 3.2, 0.2, 0.75),
+  snowLayer(500, [-9, 9, -1, 6], 5, 0.25, 0.6),
+  snowLayer(45, [-5, 5, 6, 8.8], 70, 0.0, 0.07)   // out-of-focus bokeh right in front of the lens
+];
+
+/* ---------- fish school ---------- */
+const FISH = 46;
+const fishGeo = new THREE.ConeGeometry(0.055, 0.26, 6);
+fishGeo.rotateX(Math.PI / 2);
+fishGeo.scale(0.55, 1, 1);
+const fish = new THREE.InstancedMesh(fishGeo, new THREE.MeshStandardMaterial({ color: '#9fc4cf', metalness: 0.7, roughness: 0.3 }), FISH);
+const fishOff = Array.from({ length: FISH }, () => [(rand() - 0.5) * 3, (rand() - 0.5) * 1, (rand() - 0.5) * 1.8, rand() * 6.28]);
+scene.add(fish);
+const fd = new THREE.Object3D(), fc = new THREE.Vector3(), fn = new THREE.Vector3();
+const schoolAt = (t, v) => v.set(Math.sin(t * 0.06) * 10, 2.8 + Math.sin(t * 0.11) * 0.9, -8 + Math.cos(t * 0.06) * 3.5);
+function updateFish(t) {
+  schoolAt(t, fc); schoolAt(t + 0.2, fn);
+  const dir = fn.sub(fc).normalize();
+  for (let i = 0; i < FISH; i++) {
+    const [ox, oy, oz, ph] = fishOff[i];
+    fd.position.set(fc.x + ox + Math.sin(t * 0.8 + ph) * 0.25, fc.y + oy + Math.sin(t * 1.1 + ph) * 0.12, fc.z + oz + Math.cos(t * 0.7 + ph) * 0.25);
+    fd.lookAt(fd.position.x + dir.x, fd.position.y + dir.y, fd.position.z + dir.z);
+    fd.rotateY(Math.sin(t * 9 + ph) * 0.18);
+    fd.updateMatrix();
+    fish.setMatrixAt(i, fd.matrix);
+  }
+  fish.instanceMatrix.needsUpdate = true;
+}
+
+/* ---------- something big, far away ---------- */
+const giant = new THREE.Group();
+{
+  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(0.004, 0.025, 0.035), transparent: true, opacity: 0.5, fog: false, depthWrite: false });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12), mat); body.scale.set(9, 1.5, 1.7);
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(1.1, 9, 12), mat); tail.rotation.z = Math.PI / 2; tail.position.x = -12;
+  const fin1 = new THREE.Mesh(new THREE.ConeGeometry(0.8, 4.5, 6), mat); fin1.position.set(1.5, -1.3, 1.2); fin1.rotation.set(0.6, 0, 2.4);
+  const fin2 = fin1.clone(); fin2.position.z = -1.2; fin2.rotation.x = -0.6;
+  giant.add(body, tail, fin1, fin2);
+  giant.position.set(-200, 9, -70);
+  giant.renderOrder = 0;
+  scene.add(giant);
+}
+
+/* ---------- post-processing ---------- */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.6, 0.55, 0.82);
+composer.addPass(bloom);
+const lens = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; uniform vec2 uRes; varying vec2 vUv;
+    float rnd(vec2 c){ return fract(sin(dot(c, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main(){
+      vec2 d = vUv - 0.5; float r2 = dot(d, d);
+      float ca = 0.012 * r2;
+      vec3 col = vec3(texture2D(tDiffuse, vUv + d*ca).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - d*ca).b);
+      col *= vec3(0.86, 1.0, 1.06);
+      col *= mix(1.0, 0.3, smoothstep(0.08, 0.5, r2));
+      col += (rnd(vUv * uRes + fract(uTime) * 91.7) - 0.5) * 0.03;
+      gl_FragColor = vec4(max(col, 0.0), 1.0);
+    }`
+});
+composer.addPass(lens);
+composer.addPass(new OutputPass());
+
+/* ---------- interaction ---------- */
+let selected = 'surface', hovered = null, hoverResume = false;
+portal.onChange = (key) => { selected = key; };
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(9, 9), look = new THREE.Vector2();
+canvas.addEventListener('pointermove', (e) => {
+  ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  look.copy(ptr);
+});
+canvas.addEventListener('pointerleave', () => ptr.set(9, 9));
+canvas.addEventListener('click', () => {
+  if (hovered) portal.selectChoice?.(hovered, true);
+  else if (hoverResume) portal.openResume?.();
+});
+function pick() {
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(pickables, false)[0];
+  const ch = hit?.object.userData.choice || null;
+  const rs = !!hit?.object.userData.resume;
+  if (ch !== hovered && ch) portal.selectChoice?.(ch, false);
+  hovered = ch; hoverResume = rs;
+  canvas.style.cursor = ch || rs ? 'pointer' : '';
+}
+
+/* ---------- resize ---------- */
+function resize() {
+  const w = innerWidth, h = innerHeight, a = w / h;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  bloom.setSize(w, h);
+  lens.uniforms.uRes.value.set(w, h);
+  camera.aspect = a;
+  camBase.z = a < 1.35 ? Math.min(22, 10 * 1.35 / a) : 10;
+  camTarget.y = a < 0.8 ? -2.8 : 0.95; // portrait: lift the sign above the stacked dialogue cards
+  camera.updateProjectionMatrix();
+  if (!MOTION) frame(14);
+}
+addEventListener('resize', resize);
+
+/* ---------- loop ---------- */
+const clock = new THREE.Clock();
+const camLook = new THREE.Vector2();
+function frame(t) {
+  uTime.value = t;
+  lens.uniforms.uTime.value = t;
+
+  camLook.lerp(look, 0.04);
+  camera.position.set(
+    camBase.x + camLook.x * 0.55 + Math.sin(t * 0.31) * 0.14,
+    camBase.y + camLook.y * 0.28 + Math.sin(t * 0.47) * 0.09,
+    camBase.z
+  );
+  camera.lookAt(camTarget.x + camLook.x * 0.2, camTarget.y + Math.sin(t * 0.4) * 0.04, camTarget.z);
+
+  rays.forEach((r) => { r.material.uniforms.uOpacity.value = 0.2 + 0.08 * Math.sin(t * 0.3 + r.userData.phase); });
+  sign.userData.beacon.intensity = 8 + Math.sin(t * 2.1) * 1.4;
+  sign.userData.orb.material.emissiveIntensity = 4.5 + Math.sin(t * 2.1) * 1;
+
+  pick();
+  for (const k in planks) {
+    const p = planks[k];
+    const target = k === hovered ? 1 : k === selected ? 0.75 : 0;
+    p.glow += (target - p.glow) * 0.12;
+    p.hull.material.opacity = p.glow * 0.85;
+    p.mat.emissive.setRGB(0.005 * p.glow, 0.05 * p.glow, 0.045 * p.glow);
+  }
+  topShell.rotation.x += ((hoverResume ? -1.12 : -0.95) - topShell.rotation.x) * 0.08;
+  pearl.material.emissiveIntensity += ((hoverResume ? 1.8 : 0.75 + Math.sin(t * 1.6) * 0.12) - pearl.material.emissiveIntensity) * 0.1;
+  pearlLight.intensity = 0.4 + pearl.material.emissiveIntensity * 0.6;
+
+  updateFish(t);
+  const cycle = (t % 48) / 30;          // drifts past every 48 s, takes 30 s
+  giant.position.x = cycle <= 1 ? -110 + cycle * 220 : -300;
+  giant.position.y = 9 + Math.sin(t * 0.15) * 1.5;
+
+  composer.render();
+}
+
+resize();
+if (MOTION) {
+  renderer.setAnimationLoop(() => frame(clock.getElapsedTime() + 6));
+} else {
+  frame(14);
+}
+
+  </script>
+</body>
 </html>

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#061b27" />
+    <meta
+      name="description"
+      content="Amy Cui — designer, researcher, and frontend developer."
+    />
+    <title>Amy Cui — Design in motion</title>
+    <link rel="stylesheet" href="styles.css?v=48" />
+    <script src="script.js?v=47" defer></script>
+  </head>
+  <body class="home-page">
+    <a class="skip-link" href="#featured">Skip to featured projects</a>
+    <header class="site-nav">
+      <div class="wrap nav-inner">
+        <a class="logo" href="home" aria-label="Designs By Amy home">Designs By Amy</a>
+        <nav aria-label="Main navigation">
+          <a href="projects/">Projects</a><a href="about">About Me</a><a href="contact">Contact <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <canvas id="particles" aria-hidden="true"></canvas>
+        <div class="hero-glow" aria-hidden="true"></div>
+        <div class="hero-jelly" aria-hidden="true">
+          <div class="jelly-body">
+            <img src="assets/jellyfish.svg" alt="" /><svg
+              class="jelly-bolts"
+              viewBox="0 0 46.5 63.75"
+              fill="none"
+              stroke="#fff59a"
+              stroke-width="1.2"
+            >
+              <path d="M2 6l4 3-3 3 4 3" />
+              <path d="M44 4l-4 4 3 2-4 4" />
+              <path d="M4 30l-4 4 3 2-3 4" />
+              <path d="M40 32l4 4-3 2 4 4" />
+            </svg>
+          </div>
+        </div>
+        <div class="hero-inner wrap">
+          <p class="eyebrow">
+            <svg class="sparkle" viewBox="0 0 40 40" aria-hidden="true">
+              <defs>
+                <linearGradient
+                  id="sparkle-metal"
+                  x1="0"
+                  y1="0"
+                  x2=".6"
+                  y2=".6"
+                  spreadMethod="reflect"
+                >
+                  <stop offset="0" stop-color="#c4822f" />
+                  <stop offset=".4" stop-color="#ffd77f" />
+                  <stop offset=".55" stop-color="#fffdf0" />
+                  <stop offset=".7" stop-color="#ffc659" />
+                  <stop offset="1" stop-color="#d08c33" />
+                  <animateTransform
+                    attributeName="gradientTransform"
+                    type="translate"
+                    values="0 0;1.2 1.2"
+                    dur="2.4s"
+                    repeatCount="indefinite"
+                  />
+                </linearGradient>
+              </defs>
+              <path
+                fill="url(#sparkle-metal)"
+                d="M17 4C18 14 20 17 30 19 20 21 18 24 17 36 16 24 14 21 4 19 14 17 16 14 17 4Z"
+              />
+              <path
+                class="s-small"
+                fill="url(#sparkle-metal)"
+                d="M32 1C32.5 5 33.5 6 37 6.5 33.5 7 32.5 8 32 12 31.5 8 30.5 7 27 6.5 30.5 6 31.5 5 32 1Z"
+              />
+              <path
+                class="s-small"
+                fill="url(#sparkle-metal)"
+                d="M33 28C33.4 31 34 31.6 36.5 32 34 32.4 33.4 33 33 36 32.6 33 32 32.4 29.5 32 32 31.6 32.6 31 33 28Z"
+              />
+            </svg>
+            DESIGNER · RESEARCHER · FRONTEND DEVELOPER
+          </p>
+          <h1 id="hero-title">
+            <span>Amy</span><span><em>Cui</em></span>
+          </h1>
+          <div class="hero-bottom">
+            <p>
+              Designing and creating creative solutions and products to improve
+              user experience.
+            </p>
+            <a class="explore-link" href="projects/"
+              >View all projects <span>↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+      <section
+        class="book-stories wrap"
+        id="featured"
+        aria-labelledby="work-title"
+      >
+        <div class="story-heading reveal">
+          <h2 id="work-title">Stories I’ve <em>told</em></h2>
+          <p>
+            A selection of case studies and interactive experiences that
+            showcase my work as a designer, researcher, and frontend developer.
+          </p>
+        </div>
+        <div class="storybook reveal" data-storybook>
+          <div class="pixel-book">
+            <img class="book-art" src="assets/book-open/0.svg" alt="" aria-hidden="true" width="1440" height="825" />
+            <div
+              class="book-carousel"
+              tabindex="0"
+              aria-label="Case studies, scroll sideways to turn the page"
+            >
+              <section class="book-scene" data-story="0">
+                <div class="page-container">
+                  <div class="book-left">
+                    <img
+                      class="book-page-mockup"
+                      src="assets/dnd/origin-mockup.webp"
+                      alt="Origin character creator shown on a desktop monitor and a phone"
+                      width="871"
+                      height="825"
+                    />
+                  </div>
+                  <div class="book-right">
+                    <h3>Origin</h3>
+                    <p>
+                      An interactive web experience that allows users to easily create
+                      their own Dungeons & Dragons character, with a focus on
+                      accessibility and usability.
+                    </p>
+                    <span class="book-tags"
+                      ><b>#Frontend</b><b>#Interaction Design</b><b>#Passion Project</b></span
+                    ><a class="book-cta" href="projects/Origin">View Story <span>↗</span></a>
+                  </div>
+        </div>
+              </section>
+              <section class="book-scene" data-story="1">
+                <div class="page-container">
+                  <div class="book-left"></div>
+                  <div class="book-right">
+                    <h3>HabitU</h3>
+                    <p>
+                      A conceptual mobile app that helps users build healthy habits through
+                      research-backed habit formation techniques and a
+                      personalized experience.
+                    </p>
+                    <span class="book-tags"
+                      ><b>#UX Research</b><b>#Product Design</b
+                      ><b>#Student Project</b></span
+                    ><a class="book-cta" href="projects/HabitU">View Story <span>↗</span></a>
+                  </div>
+                </div>
+              </section>
+              <section class="book-scene" data-story="2">
+                <div class="page-container">
+                  <div class="book-left">
+                    <div class="book-posters">
+                      <img src="assets/Graphic%20Design%20Work/tea-party.webp" alt="Tea party event poster" loading="lazy" />
+                      <img src="assets/Graphic%20Design%20Work/galentines.webp" alt="Galentine's event invitation" loading="lazy" />
+                      <img src="assets/Graphic%20Design%20Work/picnic-in-the-park.webp" alt="Picnic in the park event poster" loading="lazy" />
+                    </div>
+                  </div>
+                  <div class="book-right">
+                    <h3>Graphic Design</h3>
+                    <p>
+                      Invitations and posters made for the community events I host,
+                      from potlucks and picnics to tea parties, each one setting the
+                      mood before guests arrive.
+                    </p>
+                    <span class="book-tags"><b>#Graphic Design</b><b>#Event Branding</b><b>#Print</b></span
+                    ><a class="book-cta" href="projects/Graphic-Design">View Story <span>↗</span></a>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <div
+              class="book-popup is-hidden"
+              role="img"
+              aria-label="HabitU app screens popping out of the page"
+            >
+              <img
+                class="popup-phone-1"
+                src="assets/HabitU%20Assets/habitu-phone-1.svg"
+                alt=""
+              /><img
+                class="popup-phone-2"
+                src="assets/HabitU%20Assets/habitu-phone-2.svg"
+                alt=""
+              /><img
+                class="popup-phone-3"
+                src="assets/HabitU%20Assets/habitu-phone-3.svg"
+                alt=""
+              />
+            </div>
+          </div>
+          <nav class="book-nav" aria-label="Highlighted stories">
+            <button class="book-arrow book-arrow-prev" type="button" aria-label="Previous story"><svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#5a3a17" d="M5 0h2v1h-2zM4 1h1v1h-1zM6 1h1v1h-1zM3 2h1v1h-1zM6 2h1v1h-1zM2 3h1v1h-1zM6 3h7v1h-7zM1 4h1v1h-1zM12 4h1v1h-1zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM12 6h1v1h-1zM2 7h1v1h-1zM6 7h7v1h-7zM3 8h1v1h-1zM6 8h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM5 10h2v1h-2z"/><path fill="#b88742" d="M5 2h1v1h-1zM4 3h2v1h-2zM3 4h4v1h-4zM11 4h1v1h-1zM1 5h11v1h-11zM3 6h4v1h-4zM4 7h2v1h-2zM5 8h1v1h-1z"/><path fill="#f2d189" d="M5 1h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1zM2 4h1v1h-1zM7 4h4v1h-4z"/><path fill="#8a6230" d="M2 6h1v1h-1zM7 6h5v1h-5zM3 7h1v1h-1zM4 8h1v1h-1zM5 9h1v1h-1z"/></svg></button>
+            <span class="book-dots" aria-hidden="true"></span>
+            <button class="book-arrow book-arrow-next" type="button" aria-label="Next story"><svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#5a3a17" d="M5 0h2v1h-2zM4 1h1v1h-1zM6 1h1v1h-1zM3 2h1v1h-1zM6 2h1v1h-1zM2 3h1v1h-1zM6 3h7v1h-7zM1 4h1v1h-1zM12 4h1v1h-1zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM12 6h1v1h-1zM2 7h1v1h-1zM6 7h7v1h-7zM3 8h1v1h-1zM6 8h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM5 10h2v1h-2z"/><path fill="#b88742" d="M5 2h1v1h-1zM4 3h2v1h-2zM3 4h4v1h-4zM11 4h1v1h-1zM1 5h11v1h-11zM3 6h4v1h-4zM4 7h2v1h-2zM5 8h1v1h-1z"/><path fill="#f2d189" d="M5 1h1v1h-1zM4 2h1v1h-1zM3 3h1v1h-1zM2 4h1v1h-1zM7 4h4v1h-4z"/><path fill="#8a6230" d="M2 6h1v1h-1zM7 6h5v1h-5zM3 7h1v1h-1zM4 8h1v1h-1zM5 9h1v1h-1z"/></svg></button>
+          </nav>
+        </div>
+      </section>
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="wrap about-grid">
+          <div>
+            <h2 id="about-title">
+              <span class="word-article" aria-hidden="true">A</span> <span class="word-cycle" aria-hidden="true"><span><em>creator</em><em data-article="An">artist</em><em>developer</em></span></span><span class="sr-only">A creator, artist and developer</span> with<br />an eye for <em>possibility.</em>
+            </h2>
+            <p>
+              I’m Amy, a designer and developer with a background in full-stack
+              development, UX research, and event logistics. I bring systems
+              thinking, visual curiosity, and a creative lens to my work
+            </p>
+            <div class="about-ctas">
+              <a class="primary-cta" href="about"
+                >More about me <span>↗</span></a
+              ><a class="primary-cta ghost-cta" href="assets/resume.pdf" target="_blank" rel="noopener"
+                >View my resume <span>↗</span></a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer wrap">
+      <span>© <span id="year">2026</span> AMY CUI</span
+      ><span>MADE WITH A LITTLE SALT WATER</span
+      ><a href="#top">BACK TO SURFACE ↑</a>
+    </footer>
+  </body>
+</html>
