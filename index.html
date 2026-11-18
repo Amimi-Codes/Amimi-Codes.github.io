@@ -12,7 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
 
-  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <!-- fetch the whole 3D module tree at once instead of one import at a time -->
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/EffectComposer.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/RenderPass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/UnrealBloomPass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/ShaderPass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/OutputPass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/MaskPass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/postprocessing/Pass.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/shaders/CopyShader.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/shaders/LuminosityHighPassShader.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/shaders/OutputShader.js" />
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/utils/BufferGeometryUtils.js" />
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
   <style>
     :root {
       --bg-abyss: #010c14;
@@ -144,7 +158,8 @@
     }
 
     /* WebGL scene */
-    #scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; }
+    #scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; opacity: 0; transition: opacity 1.2s ease; }
+    #scene.is-ready { opacity: 1; }
 
     .resume-skip {
       position: absolute; top: 16px; left: 16px; z-index: 20;
@@ -589,6 +604,10 @@
         { id: "I", letter: "I", left: "slot", right: "flat", roundLeft: false, roundRight: true, tx: 180, ty: 104, letterX: 49, startDx: 66, startDy: 225, arcX: -18, sRot: 10, duration: 1140, easePow: 3.2, delay: 1320, isFinal: true }
       ];
 
+      // the 3D scene waits for this so building it can't stall the pieces mid-float
+      const portal = (window.__portal = window.__portal || {});
+      portal.puzzleDone = new Promise((resolve) => (portal.resolvePuzzle = resolve));
+
       let activeTimers = [];
       let activeFrames = [];
       let bubbleEngineId = null;
@@ -809,13 +828,18 @@
         });
       }
 
-      function animatePieceFloatUp(pieceObj, onSettled) {
+      function animatePieceFloatUp(pieceObj, onSettled, onStart) {
         const { cfg, el } = pieceObj;
-        const startTime = performance.now();
+        let startTime = null;
         const sx = cfg.tx + cfg.startDx;
         const sy = cfg.ty + cfg.startDy;
 
         function step(now) {
+          // the clock starts on the first drawn frame, so a busy browser can't skip the float
+          if (startTime === null) {
+            startTime = now;
+            if (onStart) onStart();
+          }
           const p = Math.min((now - startTime) / cfg.duration, 1);
           const eased = easeOutPower(p, cfg.easePow);
           const easedX = easeOutPower(p, cfg.easePow + 0.3);
@@ -943,21 +967,25 @@
 
         const pieces = buildPuzzlePieces();
 
-        pieces.forEach((pieceObj) => {
-          const t = setTimeout(() => {
-            animatePieceFloatUp(pieceObj, () => {
-              if (pieceObj.cfg.isFinal) {
-                triggerCompletionRipple();
-                // Slight ~1 second pause so users can clearly read "AMY CUI" before bubble dissolve
-                const pauseTimer = setTimeout(() => {
-                  dissolveIntoBubbles(pieces);
-                }, 980);
-                activeTimers.push(pauseTimer);
-              }
-            });
-          }, pieceObj.cfg.delay);
-          activeTimers.push(t);
-        });
+        // each piece starts its beat after the previous one is actually on screen,
+        // so pieces always rise one at a time even if the browser stalls
+        const launch = (i) => {
+          const pieceObj = pieces[i];
+          const next = pieces[i + 1];
+          animatePieceFloatUp(pieceObj, () => {
+            if (pieceObj.cfg.isFinal) {
+              triggerCompletionRipple();
+              // build the scene during the pause, after the ripple has played
+              activeTimers.push(setTimeout(portal.resolvePuzzle, 600));
+              // Slight ~1 second pause so users can clearly read "AMY CUI" before bubble dissolve
+              const pauseTimer = setTimeout(() => {
+                dissolveIntoBubbles(pieces);
+              }, 980);
+              activeTimers.push(pauseTimer);
+            }
+          }, next && (() => activeTimers.push(setTimeout(() => launch(i + 1), next.cfg.delay - pieceObj.cfg.delay))));
+        };
+        activeTimers.push(setTimeout(() => launch(0), pieces[0].cfg.delay));
       }
 
       startLoader();
@@ -966,7 +994,6 @@
       /* =======================================================
          2. DIALOGUE HUD & 3D SCENE BRIDGE
          ======================================================= */
-      const portal = (window.__portal = window.__portal || {});
       const statusText = document.getElementById("hud-status-text");
       const hudCards = document.querySelectorAll(".hud-card");
       const LABELS = {
@@ -1008,6 +1035,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const canvas = document.getElementById('scene');
 const portal = window.__portal || {};
+await portal.puzzleDone;
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let renderer;
@@ -1683,6 +1711,8 @@ function frame(t) {
 }
 
 resize();
+await renderer.compileAsync(scene, camera); // compile shaders without freezing the page
+canvas.classList.add('is-ready');
 if (MOTION) {
   renderer.setAnimationLoop(() => frame(clock.getElapsedTime() + 6));
 } else {
