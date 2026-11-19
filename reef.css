@@ -218,7 +218,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 1.2rem;
-  margin-top: 1.6rem;
+  margin-top: clamp(1.6rem, 3vw, 2.4rem);
   padding: 0.9rem 0.9rem 0.9rem 1.2rem;
   border: 1px solid #2fd3c566;
   border-radius: 6px;
@@ -457,14 +457,14 @@
 }
 .sonar-sweep {
   transform-origin: 60px 60px;
-  animation: sonar-spin 4s linear infinite;
+  animation: sonar-spin 8s linear infinite;
 }
 .sonar-blip {
-  animation: sonar-blip 3.3s ease-out infinite;
+  animation: sonar-blip 6.6s ease-out infinite;
 }
 .sonar-target-ping {
   transform-origin: 78px 86px;
-  animation: sonar-ping 2s ease-out infinite;
+  animation: sonar-ping 3.6s ease-out infinite;
 }
 .sonar:hover svg,
 .sonar:focus-visible svg {
@@ -473,11 +473,11 @@
 }
 .sonar:hover .sonar-sweep,
 .sonar:focus-visible .sonar-sweep {
-  animation-duration: 1.4s;
+  animation-duration: 3.5s;
 }
 .sonar:hover .sonar-target-ping,
 .sonar:focus-visible .sonar-target-ping {
-  animation-duration: 0.9s;
+  animation-duration: 1.8s;
 }
 .sonar:hover span,
 .sonar:focus-visible span {
