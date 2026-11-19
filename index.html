@@ -168,6 +168,7 @@
       transform: translateY(-200%); transition: transform 0.2s ease; cursor: pointer;
     }
     .resume-skip:focus-visible { transform: none; outline: 3px solid var(--hud-amber); outline-offset: 3px; }
+    .resume-skip.on-pearl:focus-visible { left: var(--px); top: var(--py); transform: translate(-50%, -50%); border-radius: 999px; }
     .hud-card:focus-visible, .hud-mini-btn:focus-visible {
       outline: none; border-color: var(--hud-amber); box-shadow: inset 0 0 0 2px var(--hud-amber);
     }
@@ -369,6 +370,8 @@
       .hud-cards-grid { grid-template-columns: 1fr; gap: 8px; }
       .hud-dialogue-inner { padding: 20px 16px 14px; }
       .hud-hint { display: none; }
+      .hud-dialogue-wrap { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+      .hud-card.is-selected { box-shadow: none; }
     }
   </style>
 </head>
@@ -455,12 +458,6 @@
   <main id="landing-page">
     <!-- Real-time 3D deep-sea scene (Three.js) -->
     <canvas id="scene" aria-hidden="true"></canvas>
-    <a class="resume-skip" href="assets/resume.pdf" target="_blank" rel="noopener">Open resume</a>
-
-    <!-- Minimal top-right utility HUD -->
-    <div class="hud-top-bar">
-      <button class="hud-mini-btn" id="replay-loader-btn" type="button">Replay Intro</button>
-    </div>
 
     <!-- =========================================================
          3. SCI-FI GAME DIALOGUE HUD (Subnautica PDA Style)
@@ -538,6 +535,14 @@
         </div>
       </div>
     </section>
+
+    <!-- after the cards in the tab order; when focused it sits on the 3D pearl -->
+    <a class="resume-skip" href="assets/resume.pdf" target="_blank" rel="noopener">Open resume</a>
+
+    <!-- Minimal top-right utility HUD -->
+    <div class="hud-top-bar">
+      <button class="hud-mini-btn" id="replay-loader-btn" type="button">Replay Intro</button>
+    </div>
   </main>
 
   <script>
@@ -1635,6 +1640,8 @@ composer.addPass(new OutputPass());
 
 /* ---------- interaction ---------- */
 let selected = 'surface', hovered = null, hoverResume = false;
+const mobile = matchMedia('(max-width: 780px)'); // same breakpoint as the stacked cards
+const resumeLink = document.querySelector('.resume-skip'), pearlPos = new THREE.Vector3();
 portal.onChange = (key) => { selected = key; };
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(9, 9), look = new THREE.Vector2();
 canvas.addEventListener('pointermove', (e) => {
@@ -1649,7 +1656,7 @@ canvas.addEventListener('click', () => {
 function pick() {
   ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(pickables, false)[0];
-  const ch = hit?.object.userData.choice || null;
+  const ch = mobile.matches ? null : hit?.object.userData.choice || null;
   const rs = !!hit?.object.userData.resume;
   if (ch !== hovered && ch) portal.selectChoice?.(ch, false);
   hovered = ch; hoverResume = rs;
@@ -1670,6 +1677,8 @@ function resize() {
   if (!MOTION) frame(14);
 }
 addEventListener('resize', resize);
+// with reduced motion there is no render loop: redraw so the pearl reacts to keyboard focus
+['focus', 'blur'].forEach((ev) => resumeLink.addEventListener(ev, () => { if (!MOTION) frame(14); }));
 
 /* ---------- loop ---------- */
 const clock = new THREE.Clock();
@@ -1693,13 +1702,23 @@ function frame(t) {
   pick();
   for (const k in planks) {
     const p = planks[k];
-    const target = k === hovered ? 1 : k === selected ? 0.75 : 0;
+    const target = mobile.matches ? 0 : k === hovered ? 1 : k === selected ? 0.75 : 0;
     p.glow += (target - p.glow) * 0.12;
     p.hull.material.opacity = p.glow * 0.85;
     p.mat.emissive.setRGB(0.005 * p.glow, 0.05 * p.glow, 0.045 * p.glow);
   }
-  topShell.rotation.x += ((hoverResume ? -1.12 : -0.95) - topShell.rotation.x) * 0.08;
-  pearl.material.emissiveIntensity += ((hoverResume ? 1.8 : 0.75 + Math.sin(t * 1.6) * 0.12) - pearl.material.emissiveIntensity) * 0.1;
+  // keyboard focus on the resume link opens the clam too, with the focus ring drawn on the pearl
+  const resumeFocused = document.activeElement === resumeLink;
+  if (resumeFocused) {
+    pearl.getWorldPosition(pearlPos).project(camera);
+    const onScreen = Math.abs(pearlPos.x) < 1 && Math.abs(pearlPos.y) < 1;
+    resumeLink.classList.toggle('on-pearl', onScreen);
+    resumeLink.style.setProperty('--px', ((pearlPos.x + 1) / 2) * innerWidth + 'px');
+    resumeLink.style.setProperty('--py', ((1 - pearlPos.y) / 2) * innerHeight + 'px');
+  }
+  const resumeLit = hoverResume || resumeFocused;
+  topShell.rotation.x += ((resumeLit ? -1.12 : -0.95) - topShell.rotation.x) * 0.08;
+  pearl.material.emissiveIntensity += ((resumeLit ? 1.8 : 0.75 + Math.sin(t * 1.6) * 0.12) - pearl.material.emissiveIntensity) * 0.1;
   pearlLight.intensity = 0.4 + pearl.material.emissiveIntensity * 0.6;
 
   updateFish(t);
