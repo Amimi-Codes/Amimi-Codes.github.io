@@ -495,7 +495,14 @@
         if (state === "flashlight" || state === "lit") document.getElementById("finds-title").focus({ preventScroll: true });
       }
       document.getElementById("intro").addEventListener("click", () => go("found"));
-      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", (e) => {
+        if (b.dataset.go === "flashlight") {
+          // the light switches on where the button was pressed (its centre from the keyboard)
+          const r = b.getBoundingClientRect();
+          aim(e.detail ? e.clientX : r.left + r.width / 2, e.detail ? e.clientY : r.top + r.height / 2);
+        }
+        go(b.dataset.go);
+      }));
       lightSwitch.addEventListener("click", () => go(body.dataset.state === "lit" ? "flashlight" : "lit"));
 
       // the flashlight follows the pointer, and keyboard focus, one update per frame
@@ -512,6 +519,7 @@
       };
       addEventListener("pointermove", (e) => aim(e.clientX, e.clientY), { passive: true });
       document.addEventListener("focusin", (e) => {
+        if (e.target.id === "finds-title") return; // focus moved there by the page, not by the visitor
         const r = e.target.getBoundingClientRect();
         aim(r.left + r.width / 2, r.top + r.height / 2);
       });
