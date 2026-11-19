@@ -8,7 +8,7 @@
     <title>Contact — Amy Cui</title>
     <link rel="stylesheet" href="styles.css?v=48" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=1" />
+    <link rel="stylesheet" href="shore.css?v=2" />
     <script src="script.js?v=47" defer></script>
   </head>
   <body class="shore-page">
@@ -75,6 +75,30 @@
         </section>
       </div>
 
+      <!-- Messages go to Amy's inbox through FormSubmit (formsubmit.co): GitHub Pages can't send
+           email itself. Without JavaScript the form still posts there and comes back here. -->
+      <section class="letter-spot wrap" aria-labelledby="letter-title">
+        <form class="letter" id="letter" action="https://formsubmit.co/amy.cui4197@gmail.com" method="POST">
+          <h2 id="letter-title" class="letter-title">Write me a message</h2>
+          <p class="letter-dear" aria-hidden="true">Dear Amy,</p>
+          <div class="letter-row">
+            <label>Your name<input name="name" autocomplete="name" required maxlength="100" /></label>
+            <label>Your email<input name="email" type="email" autocomplete="email" required maxlength="200" /></label>
+          </div>
+          <label class="letter-msg">Your message<textarea name="message" rows="6" required maxlength="5000"></textarea></label>
+          <!-- FormSubmit settings, plus a hidden field bots fill in and people don't -->
+          <input type="hidden" name="_subject" value="New message from designsbyamy.ca" />
+          <input type="hidden" name="_template" value="table" />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_next" value="https://designsbyamy.ca/contact?sent#letter" />
+          <input type="text" name="_honey" class="letter-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <div class="letter-foot">
+            <button type="submit" class="letter-send">Seal it in a bottle &amp; send</button>
+            <p class="letter-status" id="letter-status" role="status"></p>
+          </div>
+        </form>
+      </section>
+
       <div class="shore-sand" aria-hidden="true"></div>
     </main>
 
@@ -83,5 +107,35 @@
       ><span>MADE WITH A LITTLE SALT WATER</span
       ><a href="./#crossroads">BACK TO THE CROSSROADS ↑</a>
     </footer>
+    <script>
+      // send the letter without leaving the page; the reply decides what the visitor sees
+      const letter = document.getElementById("letter");
+      const status = document.getElementById("letter-status");
+      const sendBtn = letter.querySelector(".letter-send");
+      if (location.search.includes("sent")) status.textContent = "Your bottle is drifting my way. I'll write back soon!";
+      letter.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        sendBtn.disabled = true;
+        status.className = "letter-status";
+        status.textContent = "Sealing your bottle…";
+        try {
+          const res = await fetch(letter.action.replace("formsubmit.co/", "formsubmit.co/ajax/"), {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: new FormData(letter),
+          });
+          const reply = await res.json().catch(() => ({}));
+          if (!res.ok || String(reply.success) === "false") throw new Error(reply.message);
+          letter.reset();
+          letter.classList.add("is-sent");
+          status.textContent = "Your bottle is drifting my way. I'll write back soon!";
+        } catch {
+          status.classList.add("is-error");
+          status.innerHTML = 'The current pushed it back. Please try again, or email <a href="mailto:amy.cui4197@gmail.com">amy.cui4197@gmail.com</a>.';
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>

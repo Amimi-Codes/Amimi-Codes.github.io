@@ -191,3 +191,53 @@
 @media (prefers-reduced-motion: reduce) {
   .ray, .snow, .pearl, .note { animation: none; }
 }
+
+/* the visitor's own letter */
+.letter-spot { position: relative; padding: 0 0 clamp(8rem, 20vh, 12rem); }
+.letter {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(1.8rem, 4vw, 3rem);
+  background:
+    repeating-linear-gradient(transparent 0 33px, #2a1d1018 33px 34px),
+    radial-gradient(ellipse at 10% 0%, #fff6dc, transparent 55%),
+    var(--parchment);
+  color: var(--ink);
+  rotate: 0.6deg;
+  box-shadow: 0 30px 60px #00000080, inset 0 0 50px #b8955555;
+}
+.letter-title { margin: 0 0 0.4rem; font: 800 clamp(1.6rem, 3vw, 2.1rem)/1.2 Manrope, sans-serif; letter-spacing: -0.03em; }
+.letter-dear { margin: 0 0 1.4rem; font: italic 1.15rem "DM Sans", sans-serif; color: #5a4128; }
+.letter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+.letter label { display: grid; gap: 0.45rem; font: 500 0.95rem "Pixelify Sans", monospace; color: #7a4a24; }
+.letter input, .letter textarea {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 2px solid #2a1d1033;
+  border-radius: 6px;
+  background: #fffaf0cc;
+  color: var(--ink);
+  font: 1rem/1.5 "DM Sans", sans-serif;
+}
+.letter textarea { resize: vertical; min-height: 9rem; }
+.letter input:focus, .letter textarea:focus { border-color: #b8742e; outline: none; box-shadow: 0 0 0 3px #ffbe4f66; }
+.letter-honey { position: absolute; left: -9999px; }
+.letter-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.4rem; margin-top: 1.4rem; }
+.letter-send {
+  min-height: 48px;
+  padding: 0 1.6rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--amber);
+  color: #1a1205;
+  font: 700 1rem "DM Sans", sans-serif;
+  box-shadow: 0 0 22px #ffbe4f66;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.letter-send:hover { box-shadow: 0 0 32px #ffbe4faa; transform: translateY(-1px); }
+.letter-send:disabled { opacity: 0.6; cursor: wait; }
+.letter-status { margin: 0; font-weight: 700; color: #2f6b4f; }
+.letter-status.is-error { color: #9a2f29; }
+.letter-status a { color: inherit; }
+@media (max-width: 640px) { .letter-row { grid-template-columns: 1fr; } }
