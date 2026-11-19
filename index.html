@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- links back from inside the site (/#crossroads) skip the puzzle and bubbles -->
+  <script>if (location.hash === "#crossroads") document.documentElement.classList.add("skip-intro");</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#010c14" />
@@ -153,6 +155,9 @@
       transform: scale(1.035);
       transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
+
+    .skip-intro #loader-overlay { display: none; }
+    .skip-intro #landing-page { transform: none; transition: none; }
 
     #landing-page.is-active {
       transform: scale(1);
@@ -966,7 +971,16 @@
         activeTimers.push(setTimeout(() => launch(0), pieces[0].cfg.delay));
       }
 
-      startLoader();
+      if (document.documentElement.classList.contains("skip-intro")) {
+        // straight to the crossroads: no puzzle, the 3D scene builds and fades in behind the dialogue
+        history.replaceState(null, "", location.pathname);
+        overlay.classList.add("is-hidden");
+        landingPage.classList.add("is-active");
+        portal.resolveRevealed();
+        portal.resolvePuzzle();
+      } else {
+        startLoader();
+      }
 
       /* =======================================================
          2. DIALOGUE HUD & 3D SCENE BRIDGE
