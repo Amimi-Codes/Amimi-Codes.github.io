@@ -13,7 +13,7 @@
   <!-- Fonts: Manrope (600, 700, 800) & DM Sans (400, 700) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;700;800&family=Pixelify+Sans:wght@500&display=swap" rel="stylesheet" />
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <!-- download the 3D code early, but leave parsing and running it until the puzzle is done -->
@@ -167,6 +167,46 @@
       transform: translateY(-200%); transition: transform 0.2s ease; cursor: pointer;
     }
     .resume-skip:focus-visible { transform: none; outline: 3px solid var(--hud-amber); outline-offset: 3px; }
+    /* pixel speech bubble for the message in a bottle */
+    .bottle-msg {
+      --ink: #14161a;
+      --paper: #fffaf0;
+      position: absolute;
+      z-index: 20;
+      left: var(--bx, 16px);
+      top: var(--by, 64px);
+      padding: 9px 14px 10px;
+      background: var(--paper);
+      color: var(--ink);
+      font: 500 16px/1.2 "Pixelify Sans", monospace;
+      white-space: nowrap;
+      text-decoration: none;
+      /* a 3px pixel border with notched corners, and a hard pixel shadow */
+      box-shadow: 0 -3px 0 var(--ink), 0 3px 0 var(--ink), -3px 0 0 var(--ink), 3px 0 0 var(--ink), 3px 6px 0 rgba(0, 0, 0, 0.35), 6px 3px 0 rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translate(-50%, -100%) scale(0.6);
+      transform-origin: 50% 100%;
+      transition: opacity 0.12s steps(2), transform 0.15s steps(3);
+      pointer-events: none;
+    }
+    .bottle-msg::before, .bottle-msg::after { /* the stepped tail, pointing down at the bottle */
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      width: 15px;
+      height: 12px;
+      translate: -50% 0;
+      background: var(--ink);
+      clip-path: polygon(0 0, 100% 0, 100% 25%, 80% 25%, 80% 50%, 60% 50%, 60% 75%, 40% 75%, 40% 50%, 20% 50%, 20% 25%, 0 25%);
+    }
+    .bottle-msg::after { top: calc(100% - 3px); width: 9px; height: 9px; background: var(--paper); clip-path: polygon(0 0, 100% 0, 100% 34%, 67% 34%, 67% 67%, 33% 67%, 33% 34%, 0 34%); }
+    .bottle-msg.is-shown, .bottle-msg:focus-visible {
+      opacity: 1;
+      transform: translate(-50%, calc(-100% - 14px)) scale(1);
+    }
+    .bottle-msg:focus-visible { outline: 3px solid var(--hud-amber); outline-offset: 6px; pointer-events: auto; }
+
     .resume-skip.on-pearl:focus-visible { left: var(--px); top: var(--py); transform: translate(-50%, -50%); border-radius: 999px; }
     .hud-card:focus-visible {
       outline: none; border-color: var(--hud-amber); box-shadow: inset 0 0 0 2px var(--hud-amber);
@@ -512,6 +552,8 @@
 
     <!-- after the cards in the tab order; when focused it sits on the 3D pearl -->
     <a class="resume-skip" href="assets/resume.pdf" target="_blank" rel="noopener">Open resume</a>
+    <!-- the message in a bottle's speech bubble: shown over the 3D bottle on hover or keyboard focus -->
+    <a class="bottle-msg" href="contact">Leave me a message!</a>
   </main>
 
   <!-- transitions out of the crossroads (started by travel() below) -->

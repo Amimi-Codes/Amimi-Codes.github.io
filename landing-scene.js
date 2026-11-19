@@ -522,6 +522,30 @@ let topShell, pearl, pearlLight;
   [lo, to, pearl, label].forEach((m) => { m.userData.resume = true; pickables.push(m); });
 }
 
+/* ---------- message in a bottle (leads to the contact page) ---------- */
+const bottle = new THREE.Group();
+let bottleNote;
+{
+  // a lathe profile: base, body, shoulder, neck, lip
+  const profile = [[0, 0], [0.16, 0], [0.2, 0.04], [0.21, 0.12], [0.21, 0.5], [0.19, 0.58], [0.12, 0.66], [0.075, 0.72], [0.068, 0.86], [0.08, 0.89], [0.074, 0.93], [0, 0.93]]
+    .map(([x, y]) => new THREE.Vector2(x, y));
+  const glass = new THREE.Mesh(new THREE.LatheGeometry(profile, 28), new THREE.MeshStandardMaterial({
+    color: '#7fd1ab', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.4, depthWrite: false, emissive: '#0d3b2c', emissiveIntensity: 0.6
+  }));
+  bottleNote = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.38, 16), new THREE.MeshStandardMaterial({ color: '#f3e2b8', roughness: 0.8, emissive: '#ffcf80', emissiveIntensity: 0.2 }));
+  bottleNote.position.y = 0.32;
+  const ribbon = new THREE.Mesh(new THREE.CylinderGeometry(0.099, 0.099, 0.05, 16), new THREE.MeshStandardMaterial({ color: '#c8463e', roughness: 0.7 }));
+  ribbon.position.y = 0.32;
+  const cork = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.056, 0.12, 12), new THREE.MeshStandardMaterial({ color: '#8a5a33', roughness: 0.95 }));
+  cork.position.y = 0.97;
+  bottle.add(bottleNote, ribbon, cork, glass);
+  bottle.rotation.set(0.12, 0.55, -Math.PI / 2 + 0.08); // on its side, neck towards the sign, half in the sand
+  bottle.scale.setScalar(1.6);
+  bottle.position.set(-4.4, groundHeight(-4.4, 0.4) + 0.26, 0.4);
+  scene.add(bottle);
+  [glass, bottleNote, cork].forEach((m) => { m.castShadow = m !== glass; m.userData.bottle = true; pickables.push(m); });
+}
+
 /* ---------- marine snow (3 depth layers, near one as bokeh) ---------- */
 function snowLayer(count, box, size, soft, opacity) {
   const pos = new Float32Array(count * 3), seed = new Float32Array(count);
@@ -605,9 +629,10 @@ composer.addPass(lens);
 composer.addPass(new OutputPass());
 
 /* ---------- interaction ---------- */
-let selected = 'surface', hovered = null, hoverResume = false;
+let selected = 'surface', hovered = null, hoverResume = false, hoverBottle = false;
 const mobile = matchMedia('(max-width: 780px)'); // same breakpoint as the stacked cards
 const resumeLink = document.querySelector('.resume-skip'), pearlPos = new THREE.Vector3();
+const bottleLink = document.querySelector('.bottle-msg'), bottlePos = new THREE.Vector3();
 portal.onChange = (key) => { selected = key; };
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(9, 9), look = new THREE.Vector2();
 let ptrMoved = true, pickTick = 0;
@@ -617,18 +642,23 @@ canvas.addEventListener('pointermove', (e) => {
   ptrMoved = true;
 });
 canvas.addEventListener('pointerleave', () => { ptr.set(9, 9); ptrMoved = true; });
-canvas.addEventListener('click', () => {
+canvas.addEventListener('click', (e) => {
+  // pick at the click itself: a tap on a touch screen has no hover before it
+  ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  pick();
   if (hovered) portal.selectChoice?.(hovered, true);
   else if (hoverResume) portal.openResume?.();
+  else if (hoverBottle) location.href = bottleLink.href;
 });
 function pick() {
   ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(pickables, false)[0];
   const ch = mobile.matches ? null : hit?.object.userData.choice || null;
   const rs = !!hit?.object.userData.resume;
+  const bt = !!hit?.object.userData.bottle;
   if (ch !== hovered && ch) portal.selectChoice?.(ch, false);
-  hovered = ch; hoverResume = rs;
-  canvas.style.cursor = ch || rs ? 'pointer' : '';
+  hovered = ch; hoverResume = rs; hoverBottle = bt;
+  canvas.style.cursor = ch || rs || bt ? 'pointer' : '';
 }
 
 /* ---------- resize ---------- */
@@ -646,7 +676,7 @@ function resize() {
 }
 addEventListener('resize', resize);
 // with reduced motion there is no render loop: redraw so the pearl reacts to keyboard focus
-['focus', 'blur'].forEach((ev) => resumeLink.addEventListener(ev, () => { if (!MOTION) frame(14); }));
+['focus', 'blur'].forEach((ev) => [resumeLink, bottleLink].forEach((l) => l.addEventListener(ev, () => { if (!MOTION) frame(14); })));
 
 /* ---------- loop ---------- */
 const clock = new THREE.Clock();
@@ -691,6 +721,21 @@ function frame(t) {
   topShell.rotation.x += ((resumeLit ? -1.12 : -0.95) - topShell.rotation.x) * 0.08;
   pearl.material.emissiveIntensity += ((resumeLit ? 1.8 : 0.75 + Math.sin(t * 1.6) * 0.12) - pearl.material.emissiveIntensity) * 0.1;
   pearlLight.intensity = 0.4 + pearl.material.emissiveIntensity * 0.6;
+
+  // the bottle rocks in the current; hovering it (or tabbing to its link) lights the note
+  // and pops up the pixel speech bubble above it
+  bottle.rotation.x = 0.12 + Math.sin(t * 0.9) * 0.05;
+  const bottleFocused = document.activeElement === bottleLink;
+  const bottleLit = hoverBottle || bottleFocused;
+  bottleNote.material.emissiveIntensity += ((bottleLit ? 0.9 : 0.2) - bottleNote.material.emissiveIntensity) * 0.12;
+  bottleLink.classList.toggle('is-shown', hoverBottle);
+  if (bottleLit) {
+    bottle.getWorldPosition(bottlePos);
+    bottlePos.x += 0.7; bottlePos.y += 0.45;
+    bottlePos.project(camera);
+    bottleLink.style.setProperty('--bx', ((bottlePos.x + 1) / 2) * innerWidth + 'px');
+    bottleLink.style.setProperty('--by', ((1 - bottlePos.y) / 2) * innerHeight + 'px');
+  }
 
   const cycle = (t % 48) / 30;          // drifts past every 48 s, takes 30 s
   giant.position.x = cycle <= 1 ? -110 + cycle * 220 : -300;
