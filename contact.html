@@ -8,8 +8,10 @@
     <title>Contact — Amy Cui</title>
     <link rel="stylesheet" href="styles.css?v=48" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=2" />
+    <link rel="stylesheet" href="shore.css?v=3" />
     <script src="script.js?v=47" defer></script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
+    <script type="module" src="shore-scene.js"></script>
   </head>
   <body class="shore-page">
     <header class="site-nav">
@@ -22,11 +24,8 @@
     </header>
 
     <main class="shore">
-      <!-- the water: light rays and drifting marine snow, all decoration -->
-      <div class="shore-sea" aria-hidden="true">
-        <i class="ray"></i><i class="ray"></i><i class="ray"></i>
-        <i class="snow"></i><i class="snow snow-far"></i>
-      </div>
+      <!-- the empty bottle in the sand, drawn by shore-scene.js behind the page -->
+      <canvas id="shore-scene" aria-hidden="true"></canvas>
 
       <div class="shore-wrap wrap">
         <section class="shore-intro">
@@ -64,21 +63,14 @@
             </ul>
             <p class="note-sign">— Amy</p>
           </article>
-
-          <!-- the bottle it came in, uncorked, in the sand -->
-          <svg class="note-bottle" viewBox="0 0 220 90" aria-hidden="true">
-            <ellipse cx="110" cy="80" rx="96" ry="7" fill="#000" opacity=".25" />
-            <path d="M14 46c0-17 9-27 26-27h70c10 0 16 4 24 10l20 7h24c4 0 6 3 6 6v8c0 3-2 6-6 6h-24l-20 7c-8 6-14 10-24 10H40C23 73 14 63 14 46z" fill="rgba(127,209,171,.32)" stroke="#9fe6c4" stroke-width="2" />
-            <path d="M30 34c4-6 10-8 18-8h56" fill="none" stroke="#e9fff5" stroke-width="3" stroke-linecap="round" opacity=".7" />
-            <rect x="196" y="40" width="18" height="14" rx="3" fill="#8a5a33" transform="rotate(18 205 47)" />
-          </svg>
         </section>
       </div>
 
-      <!-- Messages go to Amy's inbox through FormSubmit (formsubmit.co): GitHub Pages can't send
-           email itself. Without JavaScript the form still posts there and comes back here. -->
+      <!-- Messages go to Amy's inbox through Web3Forms: GitHub Pages can't send email itself.
+           The access key is meant to be public. Without JavaScript the form still posts and comes back here. -->
       <section class="letter-spot wrap" aria-labelledby="letter-title">
-        <form class="letter" id="letter" action="https://formsubmit.co/amy.cui4197@gmail.com" method="POST">
+        <form class="letter" id="letter" action="https://api.web3forms.com/submit" method="POST">
+          <input type="hidden" name="access_key" value="78081fbe-d7c8-41bc-a4bb-ae8adbc8effb" />
           <h2 id="letter-title" class="letter-title">Write me a message</h2>
           <p class="letter-dear" aria-hidden="true">Dear Amy,</p>
           <div class="letter-row">
@@ -86,20 +78,17 @@
             <label>Your email<input name="email" type="email" autocomplete="email" required maxlength="200" /></label>
           </div>
           <label class="letter-msg">Your message<textarea name="message" rows="6" required maxlength="5000"></textarea></label>
-          <!-- FormSubmit settings, plus a hidden field bots fill in and people don't -->
-          <input type="hidden" name="_subject" value="New message from designsbyamy.ca" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_next" value="https://designsbyamy.ca/contact?sent#letter" />
-          <input type="text" name="_honey" class="letter-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <!-- Web3Forms settings, plus a hidden checkbox bots tick and people don't -->
+          <input type="hidden" name="subject" value="New message from designsbyamy.ca" />
+          <input type="hidden" name="from_name" value="designsbyamy.ca" />
+          <input type="hidden" name="redirect" value="https://designsbyamy.ca/contact?sent#letter" />
+          <input type="checkbox" name="botcheck" class="letter-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
           <div class="letter-foot">
             <button type="submit" class="letter-send">Seal it in a bottle &amp; send</button>
             <p class="letter-status" id="letter-status" role="status"></p>
           </div>
         </form>
       </section>
-
-      <div class="shore-sand" aria-hidden="true"></div>
     </main>
 
     <footer class="footer wrap">
@@ -119,13 +108,13 @@
         status.className = "letter-status";
         status.textContent = "Sealing your bottle…";
         try {
-          const res = await fetch(letter.action.replace("formsubmit.co/", "formsubmit.co/ajax/"), {
+          const res = await fetch(letter.action, {
             method: "POST",
             headers: { Accept: "application/json" },
-            body: new FormData(letter),
+            body: (() => { const d = new FormData(letter); d.delete("redirect"); return d; })(), // redirect is for the no-JS post
           });
           const reply = await res.json().catch(() => ({}));
-          if (!res.ok || String(reply.success) === "false") throw new Error(reply.message);
+          if (!res.ok || reply.success !== true) throw new Error(reply.message);
           letter.reset();
           letter.classList.add("is-sent");
           status.textContent = "Your bottle is drifting my way. I'll write back soon!";
