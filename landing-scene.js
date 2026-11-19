@@ -9,7 +9,7 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 // Loaded by index.html once the puzzle is complete; see the launch order notes there.
 const canvas = document.getElementById('scene');
 const portal = window.__portal || {};
-if (portal.dissolving) await portal.revealed; // arrived late: don't build while the bubbles play
+if (portal.dissolving) await portal.revealed; // arrived late: don't build while the name dissolves
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let renderer;
