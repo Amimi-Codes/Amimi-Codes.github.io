@@ -3,71 +3,523 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#010c14" />
-    <meta name="description" content="The Abyss: works in progress and experiments by Amy Cui. Under construction." />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="The Abyss: Amy Cui's works in progress, experiments and things made just because." />
     <title>The Abyss — Designs By Amy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Manrope:wght@600;700;800&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet" />
     <style>
-      * { box-sizing: border-box; margin: 0; }
+      * { box-sizing: border-box; }
       body {
-        --x: 50%; --y: 45%;
-        min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; overflow: hidden;
-        font-family: "DM Sans", sans-serif; color: #e6f7fa; text-align: center;
-        background: #010c14;
+        margin: 0;
+        min-height: 100vh;
+        background: #000;
+        color: #e9f1f5;
+        font-family: "DM Sans", sans-serif;
       }
-      /* the flashlight: a soft circle of light that follows the pointer */
-      body::before {
-        content: ""; position: fixed; inset: 0; pointer-events: none;
-        background: radial-gradient(circle 260px at var(--x) var(--y), #0d4a5e 0%, #052233 45%, #010c14 100%);
+      a { color: #e9f1f5; }
+      a:hover { color: #fff; }
+      :focus-visible { outline: 3px solid #ffbe4f; outline-offset: 3px; }
+      .pixel { font-family: "Pixelify Sans", monospace; }
+      .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+      /* The page moves through four states on <body data-state>:
+         dark (intro) -> found (flashlight popup) -> flashlight (light follows the pointer) <-> lit */
+      .intro, .found, .finds, .dark-overlay, .light-ctl { display: none; }
+      [data-state="dark"] .intro,
+      [data-state="found"] .found { display: flex; }
+      [data-state="flashlight"] .finds,
+      [data-state="lit"] .finds { display: block; }
+      [data-state="flashlight"] .dark-overlay,
+      [data-state="lit"] .dark-overlay { display: block; }
+      [data-state="lit"] .dark-overlay { opacity: 0; }
+      [data-state="flashlight"] .light-ctl,
+      [data-state="lit"] .light-ctl { display: flex; }
+      [data-state="flashlight"] { cursor: crosshair; }
+
+      [data-state="flashlight"] .depth-label,
+      [data-state="lit"] .depth-label { display: none; }
+      .depth-label {
+        position: fixed;
+        top: 28px;
+        left: 32px;
+        margin: 0;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        color: #8a97a3;
       }
-      main { position: relative; display: grid; justify-items: center; gap: 28px; }
-      .sign { position: relative; padding-top: 0; }
-      .sign::before { /* post */
-        content: ""; position: absolute; left: 50%; top: 60%; width: 18px; height: 60vh; translate: -50% 0; z-index: -1;
-        background: linear-gradient(90deg, #3d2a1a, #6b4a2e 45%, #3d2a1a);
+
+      /* 1. lights out */
+      .intro {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        border: 0;
+        padding: 24px;
+        background: transparent;
+        color: #e9f1f5;
+        cursor: pointer;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        text-align: center;
       }
-      .plank {
-        display: block; padding: 22px 40px; rotate: -3deg; border-radius: 6px;
-        background: repeating-linear-gradient(0deg, #8a6230 0 9px, #7a5527 9px 11px), #8a6230;
-        box-shadow: inset 0 0 0 3px #5a3a17, 0 18px 40px #000a;
-        font: 800 clamp(1.6rem, 6vw, 2.8rem)/1.1 Manrope, sans-serif; letter-spacing: -0.02em; color: #fff3da;
-        text-shadow: 0 2px 0 #5a3a17;
+      .intro:focus-visible { outline-offset: -12px; }
+      .intro-line {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-weight: 500;
+        font-size: clamp(28px, 4vw, 44px);
+        letter-spacing: 0.02em;
       }
-      .plank + .plank {
-        margin-top: 14px; rotate: 2deg; padding: 12px 28px;
-        font: 700 0.85rem/1 "DM Sans", sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: #ffbe4f;
-        background: repeating-linear-gradient(-45deg, #1a1a14 0 14px, #ffbe4f 14px 28px);
-        text-shadow: 0 0 6px #000, 0 0 2px #000;
+      .intro-line svg { width: 36px; height: 36px; display: block; flex: none; }
+      .intro-hint { font-size: 16px; color: #8a97a3; }
+      .nudge { animation: nudge 1.1s steps(2, end) infinite; }
+      @keyframes nudge { 50% { transform: translateY(8px); } }
+
+      /* 2. new item found */
+      .found {
+        position: fixed;
+        inset: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 96px 24px;
       }
-      p { max-width: 420px; color: #98bcc7; line-height: 1.6; }
-      nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-      nav a {
-        padding: 10px 18px; border: 1px solid #38d6ff59; color: #9beeff; text-decoration: none;
-        font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
-        background: #031522a6; transition: border-color 0.2s, color 0.2s;
+      .popup {
+        width: min(460px, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        padding: 28px 32px 30px;
+        border-radius: 10px;
+        border: 2px solid #8fcfff;
+        background: rgba(22, 28, 34, 0.94);
+        box-shadow: 0 0 0 4px rgba(143, 207, 255, 0.12), 0 30px 80px rgba(0, 0, 0, 0.8);
+        text-align: center;
+        animation: pop 0.25s steps(4, end);
       }
-      nav a:hover, nav a:focus-visible { border-color: #38d6ff; color: #fff; outline: none; }
-      nav a:focus-visible { box-shadow: 0 0 0 2px #ffbe4f; }
+      @keyframes pop { from { transform: scale(0.85); opacity: 0; } }
+      .popup h1 {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font: 700 22px/1.3 Manrope, sans-serif;
+      }
+      .popup h1 span:last-child { color: #ffbe4f; }
+      .item-icon {
+        width: 200px;
+        padding: 14px 10px;
+        border-radius: 10px;
+        border: 3px solid #0b0f13;
+        outline: 2px solid #8fcfff;
+        background: #10406b;
+        animation: bob 3s ease-in-out infinite;
+      }
+      .item-icon svg { width: 100%; height: auto; display: block; }
+      .beam { animation: flicker 4s linear infinite; }
+      @keyframes bob { 50% { transform: translateY(-6px); } }
+      @keyframes flicker { 0%, 47%, 53%, 100% { opacity: 0.5; } 50% { opacity: 0.25; } }
+      .info-rule {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 2px;
+        font: 700 17px Manrope, sans-serif;
+      }
+      .info-rule::before, .info-rule::after { content: ""; flex: 1; height: 2px; background: #9b8cff; }
+      .popup p { margin: 6px 0 0; font-size: 17px; line-height: 1.55; }
+      .popup p .mint { color: #6ef7df; font-weight: 700; }
+      .popup p .coral { color: #ff9a6b; font-weight: 700; }
+      .btn-amber {
+        margin-top: 10px;
+        min-height: 48px;
+        padding: 0 26px;
+        border: 0;
+        border-radius: 8px;
+        background: #ffbe4f;
+        color: #1a1205;
+        font: 700 16px "DM Sans", sans-serif;
+        box-shadow: 0 0 22px rgba(255, 190, 79, 0.45);
+        cursor: pointer;
+      }
+      .btn-amber:hover { box-shadow: 0 0 30px rgba(255, 190, 79, 0.7); }
+      .btn-quiet {
+        min-height: 44px;
+        border: 0;
+        background: none;
+        color: #b9c6d0;
+        font: 700 14px "DM Sans", sans-serif;
+        cursor: pointer;
+      }
+      .btn-quiet:hover { color: #fff; }
+
+      /* 3. lost & found: the content under the flashlight */
+      .finds { padding: 56px 0 48px; }
+      .finds-head {
+        width: 100%;
+        max-width: 1340px;
+        margin: 0 auto;
+        padding: 0 5%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 28px;
+      }
+      .finds-head > div { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+      .kicker { margin: 0; font-weight: 700; font-size: 13px; letter-spacing: 0.18em; color: #ff9a6b; }
+      .finds-head h2:focus { outline: none; }
+      .finds-head h2 {
+        margin: 0;
+        font: 800 clamp(40px, 6vw, 64px)/1.04 Manrope, sans-serif;
+        letter-spacing: -0.02em;
+      }
+      .finds-head p:not(.kicker) { margin: 0; font-size: 18px; line-height: 1.6; color: #b5c3ce; }
+      .touch-only { display: none; }
+      .status-key { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; }
+      .status-key li, .chip {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--tone);
+        color: var(--tone-text);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .sketch { --tone: #c9b3ff; --tone-text: #d9c9ff; }
+      .prototype { --tone: #6ef7df; --tone-text: #9ffbea; }
+      .in-progress { --tone: #ffbe4f; --tone-text: #ffd48a; }
+      .unknown { --tone: #5b6875; --tone-text: #b5c3ce; }
+
+      .finds-strip {
+        overflow: hidden;
+        padding: 48px 0 56px;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+        mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+      }
+      .finds-track {
+        display: flex;
+        width: max-content;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        animation: drift 70s linear infinite;
+      }
+      .finds-track:hover, .finds-track:focus-within { animation-play-state: paused; }
+      @keyframes drift { to { transform: translateX(-50%); } }
+      .finds-track > li { flex: none; padding-right: 40px; }
+      .find {
+        position: relative;
+        width: 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 10px;
+        background: #0d1217;
+        border: 1px solid #27313a;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .find:hover, .find:focus-within { border-color: #5b6875; box-shadow: 0 0 0 1px #5b6875, 0 18px 40px rgba(0, 0, 0, 0.6); }
+      .finds-track > li:nth-child(6n + 1) .find { rotate: -1.5deg; }
+      .finds-track > li:nth-child(6n + 2) .find { rotate: 1.2deg; translate: 0 28px; }
+      .finds-track > li:nth-child(6n + 3) .find { rotate: -0.6deg; translate: 0 -12px; }
+      .finds-track > li:nth-child(6n + 4) .find { rotate: 1.8deg; translate: 0 16px; }
+      .finds-track > li:nth-child(6n + 5) .find { rotate: -1deg; translate: 0 32px; }
+      .finds-track > li:nth-child(6n + 6) .find { rotate: 0.8deg; translate: 0 -6px; }
+      .find-shot {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        margin: 0;
+        border-radius: 8px;
+        border: 1px solid #2c3640;
+        background: repeating-linear-gradient(45deg, #0b1015 0 10px, #0e141a 10px 11px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font: 700 56px "Pixelify Sans", monospace;
+        color: #2c3640;
+      }
+      .find-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .find-shot .chip { position: absolute; top: 10px; left: 10px; padding: 4px 10px; background: #000; font: 700 12px "DM Sans", sans-serif; }
+      .find h3 { margin: 0; font: 700 22px Manrope, sans-serif; }
+      .find p { margin: 0; font-size: 15px; line-height: 1.6; color: #b5c3ce; }
+      .find-foot {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        font-size: 13px;
+        color: #9aa8b3;
+      }
+      .find-foot a { min-height: 44px; display: flex; align-items: center; font-weight: 700; font-size: 15px; }
+      .finds-note { margin: 0; padding: 0 5%; text-align: center; font-size: 15px; color: #8a97a3; }
+      .finds-exits { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding: 0 5%; }
+      .finds-exits a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+        border: 1px solid #3a4652;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .finds-exits a:hover { border-color: #8a97a3; }
+
+      /* the dark, with a hole of light that follows the pointer (moved with transform: no repaints) */
+      .dark-overlay {
+        position: fixed;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        width: 400vmax;
+        height: 400vmax;
+        pointer-events: none;
+        transition: opacity 0.4s;
+        transform: translate(calc(var(--x, 50vw) - 50%), calc(var(--y, 30vh) - 50%));
+        background:
+          radial-gradient(circle 230px, rgba(255, 236, 190, 0.07) 0, rgba(255, 236, 190, 0) 70%),
+          radial-gradient(circle 230px, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0.94) 78%, #000 100%);
+      }
+
+      /* pixel light switch */
+      .light-ctl { position: fixed; top: 20px; right: 28px; z-index: 3; }
+      .light-switch {
+        position: relative;
+        width: 64px;
+        height: 96px;
+        padding: 0;
+        border: 3px solid #0b0d10;
+        background: #d9d4c4;
+        box-shadow: inset -4px -4px 0 #b3ad98, inset 4px 4px 0 #f2eee2, 4px 4px 0 #0b0d10;
+        cursor: pointer;
+      }
+      .light-switch:focus-visible { outline-offset: 4px; }
+      .light-switch .screw { position: absolute; left: 50%; width: 6px; height: 6px; margin-left: -3px; background: #0b0d10; }
+      .light-switch .lever {
+        position: absolute;
+        left: 50%;
+        top: 28px;
+        width: 22px;
+        height: 26px;
+        margin-left: -11px;
+        border: 3px solid #0b0d10;
+        background: linear-gradient(#4a515d 0 45%, #8a93a1 45%);
+      }
+      .light-switch .screen {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 14px;
+        height: 20px;
+        border: 3px solid #0b0d10;
+        background: #1a2230;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: 700 12px/1 "Pixelify Sans", monospace;
+        color: #ff8a7a;
+      }
+      .light-switch[aria-checked="true"] .lever { top: 14px; background: linear-gradient(#8a93a1 0 55%, #4a515d 55%); }
+      .light-switch[aria-checked="true"] .screen { color: #6fdc9a; }
+
+      /* phones, touch and reduced motion: no flashlight, the strip scrolls instead of drifting */
+      .mobile-intro { display: none; }
+      @media (max-width: 900px), (hover: none) {
+        [data-state="dark"] .intro, [data-state="found"] .found,
+        .dark-overlay, .light-ctl { display: none !important; }
+        [data-state="dark"] .mobile-intro, [data-state="found"] .mobile-intro {
+          display: flex;
+          min-height: 100vh;
+          min-height: 100svh;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 18px;
+          padding: 48px 24px;
+          text-align: center;
+        }
+        .hover-only { display: none; }
+        .touch-only { display: inline; }
+        .mobile-intro p { margin: 0; font: 800 32px/1.2 Manrope, sans-serif; }
+        .depth-label { display: none; }
+      }
+      @media (max-width: 900px), (hover: none), (prefers-reduced-motion: reduce) {
+        .finds-strip { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; padding-inline: 5%; }
+        .finds-track { animation: none; }
+        .finds-track > li { scroll-snap-align: center; }
+        .finds-track > li[aria-hidden] { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nudge, .popup, .item-icon, .beam { animation: none; }
+      }
     </style>
   </head>
-  <body>
-    <main>
-      <h1 class="sign">
-        <span class="plank">The Abyss</span>
-        <span class="plank">Under construction</span>
-      </h1>
-      <p>This part of the ocean is still being explored. Experiments and works in progress will surface here soon.</p>
-      <nav aria-label="Leave the abyss">
+  <body data-state="dark">
+    <p class="depth-label">THE ABYSS · DEPTH 3,200 M</p>
+
+    <!-- 1. lights out (desktop) -->
+    <button type="button" class="intro pixel" id="intro">
+      <span class="intro-line">Hey. Who turned out the lights?! <span class="nudge"><svg viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="3" height="1" fill="#0b0d10"></rect><rect x="3" y="1" width="1" height="1" fill="#0b0d10"></rect><rect x="5" y="1" width="1" height="1" fill="#0b0d10"></rect><rect x="3" y="2" width="1" height="1" fill="#0b0d10"></rect><rect x="5" y="2" width="1" height="1" fill="#0b0d10"></rect><rect x="3" y="3" width="1" height="1" fill="#0b0d10"></rect><rect x="5" y="3" width="1" height="1" fill="#0b0d10"></rect><rect x="0" y="4" width="4" height="1" fill="#0b0d10"></rect><rect x="5" y="4" width="4" height="1" fill="#0b0d10"></rect><rect x="1" y="5" width="1" height="1" fill="#0b0d10"></rect><rect x="7" y="5" width="1" height="1" fill="#0b0d10"></rect><rect x="2" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="6" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="3" y="7" width="1" height="1" fill="#0b0d10"></rect><rect x="5" y="7" width="1" height="1" fill="#0b0d10"></rect><rect x="4" y="8" width="1" height="1" fill="#0b0d10"></rect><rect x="4" y="1" width="1" height="1" fill="#ffbe4f"></rect><rect x="4" y="2" width="1" height="1" fill="#ffbe4f"></rect><rect x="4" y="3" width="1" height="1" fill="#ffbe4f"></rect><rect x="4" y="4" width="1" height="1" fill="#ffbe4f"></rect><rect x="2" y="5" width="5" height="1" fill="#ffbe4f"></rect><rect x="3" y="6" width="3" height="1" fill="#ffbe4f"></rect><rect x="4" y="7" width="1" height="1" fill="#ffbe4f"></rect></svg></span></span>
+      <span class="intro-hint">Click anywhere to continue</span>
+    </button>
+
+    <!-- phones: straight in -->
+    <div class="mobile-intro">
+      <span class="kicker">THE ABYSS</span>
+      <p>Works in progress</p>
+      <button type="button" class="btn-amber" data-go="lit">Dive in</button>
+    </div>
+
+    <!-- 2. new item found -->
+    <div class="found">
+      <section class="popup" role="dialog" aria-modal="true" aria-labelledby="found-title">
+        <h1 id="found-title"><span>New item found!</span><span>Flashlight</span></h1>
+        <div class="item-icon" aria-hidden="true"><svg viewBox="0 0 48 24" shape-rendering="crispEdges"><g class="beam" opacity=".5"><rect x="0" y="1" width="2" height="1" fill="#fff1b0"></rect><rect x="0" y="2" width="4" height="1" fill="#fff1b0"></rect><rect x="0" y="3" width="6" height="1" fill="#fff1b0"></rect><rect x="0" y="4" width="8" height="1" fill="#fff1b0"></rect><rect x="0" y="5" width="10" height="1" fill="#fff1b0"></rect><rect x="0" y="6" width="12" height="1" fill="#fff1b0"></rect><rect x="0" y="7" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="8" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="9" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="10" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="11" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="12" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="13" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="14" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="15" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="16" width="13" height="1" fill="#fff1b0"></rect><rect x="0" y="17" width="12" height="1" fill="#fff1b0"></rect><rect x="0" y="18" width="10" height="1" fill="#fff1b0"></rect><rect x="0" y="19" width="8" height="1" fill="#fff1b0"></rect><rect x="0" y="20" width="6" height="1" fill="#fff1b0"></rect><rect x="0" y="21" width="4" height="1" fill="#fff1b0"></rect><rect x="0" y="22" width="2" height="1" fill="#fff1b0"></rect></g><rect x="14" y="4" width="9" height="1" fill="#0b0d10"></rect><rect x="13" y="5" width="1" height="1" fill="#0b0d10"></rect><rect x="23" y="5" width="3" height="1" fill="#0b0d10"></rect><rect x="31" y="5" width="4" height="1" fill="#0b0d10"></rect><rect x="13" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="26" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="30" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="35" y="6" width="1" height="1" fill="#0b0d10"></rect><rect x="44" y="6" width="3" height="1" fill="#0b0d10"></rect><rect x="13" y="7" width="1" height="1" fill="#0b0d10"></rect><rect x="26" y="7" width="5" height="1" fill="#0b0d10"></rect><rect x="35" y="7" width="9" height="1" fill="#0b0d10"></rect><rect x="47" y="7" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="8" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="8" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="9" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="9" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="10" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="10" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="11" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="11" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="12" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="12" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="13" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="13" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="14" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="14" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="15" width="1" height="1" fill="#0b0d10"></rect><rect x="47" y="15" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="16" width="1" height="1" fill="#0b0d10"></rect><rect x="26" y="16" width="18" height="1" fill="#0b0d10"></rect><rect x="47" y="16" width="1" height="1" fill="#0b0d10"></rect><rect x="13" y="17" width="1" height="1" fill="#0b0d10"></rect><rect x="26" y="17" width="1" height="1" fill="#0b0d10"></rect><rect x="44" y="17" width="3" height="1" fill="#0b0d10"></rect><rect x="13" y="18" width="1" height="1" fill="#0b0d10"></rect><rect x="23" y="18" width="3" height="1" fill="#0b0d10"></rect><rect x="14" y="19" width="9" height="1" fill="#0b0d10"></rect><rect x="14" y="5" width="9" height="1" fill="#575d6e"></rect><rect x="14" y="6" width="6" height="1" fill="#575d6e"></rect><rect x="22" y="6" width="1" height="1" fill="#575d6e"></rect><rect x="20" y="6" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="7" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="8" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="9" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="10" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="11" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="12" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="13" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="14" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="15" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="16" width="2" height="1" fill="#4a5060"></rect><rect x="20" y="17" width="2" height="1" fill="#4a5060"></rect><rect x="23" y="6" width="2" height="1" fill="#f2b51d"></rect><rect x="24" y="7" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="8" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="9" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="10" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="11" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="12" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="13" width="1" height="1" fill="#f2b51d"></rect><rect x="24" y="14" width="1" height="1" fill="#f2b51d"></rect><rect x="23" y="15" width="2" height="1" fill="#f2b51d"></rect><rect x="23" y="16" width="2" height="1" fill="#f2b51d"></rect><rect x="23" y="17" width="2" height="1" fill="#f2b51d"></rect><rect x="25" y="6" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="7" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="8" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="9" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="10" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="11" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="12" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="13" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="14" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="15" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="16" width="1" height="1" fill="#c98a12"></rect><rect x="25" y="17" width="1" height="1" fill="#c98a12"></rect><rect x="31" y="6" width="1" height="1" fill="#2a2d36"></rect><rect x="34" y="6" width="1" height="1" fill="#2a2d36"></rect><rect x="31" y="7" width="4" height="1" fill="#2a2d36"></rect><rect x="32" y="6" width="2" height="1" fill="#4a4f5c"></rect><rect x="46" y="9" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="10" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="11" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="12" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="13" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="14" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="15" width="1" height="1" fill="#4a4f5c"></rect><rect x="46" y="16" width="1" height="1" fill="#4a4f5c"></rect><rect x="14" y="7" width="2" height="1" fill="#3a3f4c"></rect><rect x="18" y="7" width="2" height="1" fill="#3a3f4c"></rect><rect x="22" y="7" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="8" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="8" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="8" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="9" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="9" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="9" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="10" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="10" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="10" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="11" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="11" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="11" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="12" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="12" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="12" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="13" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="13" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="13" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="14" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="14" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="14" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="15" width="1" height="1" fill="#3a3f4c"></rect><rect x="19" y="15" width="1" height="1" fill="#3a3f4c"></rect><rect x="22" y="15" width="1" height="1" fill="#3a3f4c"></rect><rect x="14" y="16" width="2" height="1" fill="#3a3f4c"></rect><rect x="18" y="16" width="2" height="1" fill="#3a3f4c"></rect><rect x="22" y="16" width="1" height="1" fill="#3a3f4c"></rect><rect x="16" y="7" width="2" height="1" fill="#c9cfe0"></rect><rect x="15" y="8" width="4" height="1" fill="#c9cfe0"></rect><rect x="15" y="9" width="1" height="1" fill="#c9cfe0"></rect><rect x="17" y="9" width="2" height="1" fill="#c9cfe0"></rect><rect x="15" y="10" width="1" height="1" fill="#c9cfe0"></rect><rect x="17" y="10" width="2" height="1" fill="#c9cfe0"></rect><rect x="15" y="11" width="4" height="1" fill="#c9cfe0"></rect><rect x="15" y="12" width="4" height="1" fill="#c9cfe0"></rect><rect x="23" y="7" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="8" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="9" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="10" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="11" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="12" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="13" width="1" height="1" fill="#ffe08a"></rect><rect x="23" y="14" width="1" height="1" fill="#ffe08a"></rect><rect x="44" y="7" width="3" height="1" fill="#9aa0ae"></rect><rect x="44" y="8" width="3" height="1" fill="#9aa0ae"></rect><rect x="26" y="8" width="18" height="1" fill="#ffd779"></rect><rect x="16" y="9" width="1" height="1" fill="#ffffff"></rect><rect x="16" y="10" width="1" height="1" fill="#ffffff"></rect><rect x="26" y="9" width="18" height="1" fill="#f5c252"></rect><rect x="44" y="9" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="10" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="11" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="12" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="13" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="14" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="15" width="2" height="1" fill="#6b7080"></rect><rect x="44" y="16" width="2" height="1" fill="#6b7080"></rect><rect x="26" y="10" width="18" height="1" fill="#e8a935"></rect><rect x="26" y="11" width="2" height="1" fill="#e8a935"></rect><rect x="29" y="11" width="2" height="1" fill="#e8a935"></rect><rect x="32" y="11" width="2" height="1" fill="#e8a935"></rect><rect x="35" y="11" width="2" height="1" fill="#e8a935"></rect><rect x="38" y="11" width="2" height="1" fill="#e8a935"></rect><rect x="41" y="11" width="3" height="1" fill="#e8a935"></rect><rect x="26" y="12" width="2" height="1" fill="#e8a935"></rect><rect x="29" y="12" width="2" height="1" fill="#e8a935"></rect><rect x="32" y="12" width="2" height="1" fill="#e8a935"></rect><rect x="35" y="12" width="2" height="1" fill="#e8a935"></rect><rect x="38" y="12" width="2" height="1" fill="#e8a935"></rect><rect x="41" y="12" width="3" height="1" fill="#e8a935"></rect><rect x="26" y="13" width="18" height="1" fill="#e8a935"></rect><rect x="28" y="11" width="1" height="1" fill="#cf8f2a"></rect><rect x="31" y="11" width="1" height="1" fill="#cf8f2a"></rect><rect x="34" y="11" width="1" height="1" fill="#cf8f2a"></rect><rect x="37" y="11" width="1" height="1" fill="#cf8f2a"></rect><rect x="40" y="11" width="1" height="1" fill="#cf8f2a"></rect><rect x="28" y="12" width="1" height="1" fill="#cf8f2a"></rect><rect x="31" y="12" width="1" height="1" fill="#cf8f2a"></rect><rect x="34" y="12" width="1" height="1" fill="#cf8f2a"></rect><rect x="37" y="12" width="1" height="1" fill="#cf8f2a"></rect><rect x="40" y="12" width="1" height="1" fill="#cf8f2a"></rect><rect x="15" y="13" width="4" height="1" fill="#9aa1b8"></rect><rect x="15" y="14" width="4" height="1" fill="#9aa1b8"></rect><rect x="15" y="15" width="4" height="1" fill="#9aa1b8"></rect><rect x="16" y="16" width="2" height="1" fill="#9aa1b8"></rect><rect x="26" y="14" width="18" height="1" fill="#b87824"></rect><rect x="26" y="15" width="18" height="1" fill="#b87824"></rect><rect x="14" y="17" width="6" height="1" fill="#262a33"></rect><rect x="22" y="17" width="1" height="1" fill="#262a33"></rect><rect x="14" y="18" width="9" height="1" fill="#262a33"></rect></svg></div>
+        <div class="info-rule">Information</div>
+        <p>
+          You found this battered <span class="mint">flashlight</span> at the edge of the
+          <span class="coral">Abyss</span>. It only lights what's right in front of you, so move it
+          around to explore...
+        </p>
+        <button type="button" class="btn-amber" data-go="flashlight" id="flashlight-on">Turn Flashlight On</button>
+        <button type="button" class="btn-quiet" data-go="lit">I'm scared of the dark, turn all lights on</button>
+      </section>
+    </div>
+
+    <!-- 3. lost & found in the deep -->
+    <main class="finds" id="finds">
+      <header class="finds-head">
+        <div>
+          <p class="kicker">THE ABYSS · WORKS IN PROGRESS</p>
+          <h2 id="finds-title" tabindex="-1">Lost &amp; found in the deep</h2>
+          <p>
+            Half-built ideas, experiments and things I made just because. They drift past in the
+            current: <span class="hover-only">hover over one to stop it and take a closer look.</span><span class="touch-only">swipe through them to take a closer look.</span>
+          </p>
+        </div>
+        <ul class="status-key" aria-label="Status key">
+          <li class="sketch">Sketch</li>
+          <li class="prototype">Prototype</li>
+          <li class="in-progress">In progress</li>
+        </ul>
+      </header>
+
+      <div class="finds-strip" role="region" aria-label="Works in progress">
+        <!-- Each <li> is one find. Status classes: sketch, prototype, in-progress.
+             script below repeats the list once so the drift loops seamlessly. -->
+        <ul class="finds-track">
+          <li>
+            <article class="find">
+              <figure class="find-shot">
+                <img src="assets/abyss/portfolio.webp" alt="The underwater crossroads on this site's landing page" width="680" height="510" loading="lazy" />
+                <span class="chip in-progress">In progress</span>
+              </figure>
+              <h3>Designs By Amy</h3>
+              <p>This portfolio: an underwater world with a 3D crossroads, a reef of finished work and this abyss. Still adding to it and tuning the 3D scene so it runs smoothly on older laptops.</p>
+              <div class="find-foot">
+                <span>Last surfaced: Nov 2026</span>
+                <a href="https://github.com/Amimi-Codes/Amimi-Codes.github.io">Inspect the find →</a>
+              </div>
+            </article>
+          </li>
+          <li>
+            <article class="find">
+              <figure class="find-shot" aria-hidden="true">?<span class="chip unknown">Unidentified</span></figure>
+              <h3>Unidentified find</h3>
+              <p>Something's half-buried here. It will surface once it's ready to be looked at.</p>
+              <div class="find-foot"><span>Surfacing soon</span></div>
+            </article>
+          </li>
+          <li>
+            <article class="find">
+              <figure class="find-shot" aria-hidden="true">?<span class="chip unknown">Unidentified</span></figure>
+              <h3>Unidentified find</h3>
+              <p>A shape in the dark, too far down to make out yet.</p>
+              <div class="find-foot"><span>Surfacing soon</span></div>
+            </article>
+          </li>
+          <li>
+            <article class="find">
+              <figure class="find-shot" aria-hidden="true">?<span class="chip unknown">Unidentified</span></figure>
+              <h3>Unidentified find</h3>
+              <p>Still in the sketchbook. Check back after the next dive.</p>
+              <div class="find-foot"><span>Surfacing soon</span></div>
+            </article>
+          </li>
+        </ul>
+      </div>
+
+      <p class="finds-note">More finds surface as they're built.</p>
+      <nav class="finds-exits" aria-label="Leave the abyss">
         <a href="./#crossroads">Swim back up</a>
         <a href="projects/">Visit the reef</a>
       </nav>
     </main>
+
+    <div class="dark-overlay" aria-hidden="true"></div>
+    <div class="light-ctl">
+      <button type="button" class="light-switch" role="switch" aria-checked="false" aria-label="Lights">
+        <span class="screw" style="top: 5px" aria-hidden="true"></span>
+        <span class="lever" aria-hidden="true"></span>
+        <span class="screen" aria-hidden="true">OFF</span>
+        <span class="screw" style="bottom: 4px" aria-hidden="true"></span>
+      </button>
+    </div>
+
     <script>
-      addEventListener("pointermove", (e) => {
-        document.body.style.setProperty("--x", e.clientX + "px");
-        document.body.style.setProperty("--y", e.clientY + "px");
+      const body = document.body;
+      const lightSwitch = document.querySelector(".light-switch");
+      const screen = lightSwitch.querySelector(".screen");
+
+      function go(state) {
+        body.dataset.state = state;
+        const lit = state === "lit";
+        lightSwitch.setAttribute("aria-checked", lit);
+        screen.textContent = lit ? "ON" : "OFF";
+        if (state === "found") document.getElementById("flashlight-on").focus();
+        if (state === "flashlight" || state === "lit") document.getElementById("finds-title").focus({ preventScroll: true });
+      }
+      document.getElementById("intro").addEventListener("click", () => go("found"));
+      document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+      lightSwitch.addEventListener("click", () => go(body.dataset.state === "lit" ? "flashlight" : "lit"));
+
+      // the flashlight follows the pointer, and keyboard focus, one update per frame
+      let x = innerWidth / 2, y = innerHeight * 0.3, queued = false;
+      const aim = (nx, ny) => {
+        x = nx; y = ny;
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          body.style.setProperty("--x", x + "px");
+          body.style.setProperty("--y", y + "px");
+        });
+      };
+      addEventListener("pointermove", (e) => aim(e.clientX, e.clientY), { passive: true });
+      document.addEventListener("focusin", (e) => {
+        const r = e.target.getBoundingClientRect();
+        aim(r.left + r.width / 2, r.top + r.height / 2);
+      });
+
+      // repeat the finds once so the drift can loop; the copies are hidden from assistive tech
+      const track = document.querySelector(".finds-track");
+      [...track.children].forEach((li) => {
+        const copy = li.cloneNode(true);
+        copy.setAttribute("aria-hidden", "true");
+        copy.inert = true;
+        track.append(copy);
       });
     </script>
   </body>
