@@ -30,7 +30,8 @@
       [data-state="dark"] .intro,
       [data-state="found"] .found { display: flex; }
       [data-state="flashlight"] .finds,
-      [data-state="lit"] .finds { display: block; }
+      [data-state="lit"] .finds { display: flex; }
+      [data-state="flashlight"], [data-state="lit"] { overflow: hidden; } /* one screen, no page scroll */
       [data-state="flashlight"] .dark-overlay,
       [data-state="lit"] .dark-overlay { display: block; }
       [data-state="lit"] .dark-overlay { opacity: 0; }
@@ -163,7 +164,13 @@
       .btn-quiet:hover { color: #fff; }
 
       /* 3. lost & found: the content under the flashlight */
-      .finds { padding: 56px 0 48px; }
+      /* one screen tall: heading, the strip (scaled to fit the height left), the exits */
+      .finds {
+        height: 100vh;
+        height: 100svh;
+        flex-direction: column;
+        padding: clamp(24px, 6vh, 56px) 0 clamp(16px, 3vh, 32px);
+      }
       .finds-head {
         width: 100%;
         max-width: 1340px;
@@ -200,22 +207,30 @@
       .unknown { --tone: #5b6875; --tone-text: #b5c3ce; }
 
       .finds-strip {
+        position: relative;
+        flex: 1;
+        min-height: 0;
         overflow: hidden;
-        padding: 48px 0 56px;
         -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
         mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
       }
-      .finds-track {
+      .finds-fit { /* --fit (set by the script) shrinks the cards on short screens */
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: calc(100% / var(--fit, 1));
+        padding: 40px 0 52px;
+        transform-origin: 0 50%;
+        transform: translateY(-50%) scale(var(--fit, 1));
+      }
+      .finds-track { /* moved by the script: a steady drift, plus whatever the scroll wheel adds */
         display: flex;
         width: max-content;
         margin: 0;
         padding: 0;
         list-style: none;
-        animation: drift 70s linear infinite;
+        will-change: transform;
       }
-      /* hovering stops the drift with the lights on; under the flashlight it keeps drifting past */
-      [data-state="lit"] .finds-track:hover, .finds-track:focus-within { animation-play-state: paused; }
-      @keyframes drift { to { transform: translateX(-50%); } }
       .finds-track > li { flex: none; padding-right: 40px; }
       .find {
         position: relative;
@@ -265,8 +280,7 @@
         color: #9aa8b3;
       }
       .find-foot a { min-height: 44px; display: flex; align-items: center; font-weight: 700; font-size: 15px; }
-      .finds-note { margin: 0; padding: 0 5%; text-align: center; font-size: 15px; color: #8a97a3; }
-      .finds-exits { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding: 0 5%; }
+      .finds-exits { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 0 5%; }
       .finds-exits a {
         min-height: 44px;
         display: flex;
@@ -358,9 +372,13 @@
         .mobile-intro p { margin: 0; font: 800 32px/1.2 Manrope, sans-serif; }
         .depth-label { display: none; }
       }
-      @media (max-width: 900px), (hover: none), (prefers-reduced-motion: reduce) {
-        .finds-strip { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; padding-inline: 5%; }
-        .finds-track { animation: none; }
+      /* phones and touch: a normal page, and the strip is swiped instead */
+      @media (max-width: 900px), (hover: none) {
+        [data-state="flashlight"], [data-state="lit"] { overflow: auto; }
+        .finds { height: auto; padding: 48px 0 40px; }
+        .finds-strip { flex: none; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; padding-inline: 5%; }
+        .finds-fit { position: static; width: auto; transform: none; padding: 40px 0 48px; }
+        .finds-track { transform: none !important; }
         .finds-track > li { scroll-snap-align: center; }
         .finds-track > li[aria-hidden] { display: none; }
       }
@@ -409,7 +427,7 @@
           <h2 id="finds-title" tabindex="-1">Lost &amp; found in the deep</h2>
           <p>
             Half-built ideas, experiments and things I made just because. They drift past in the
-            current: <span class="hover-only">hover over one to stop it and take a closer look.</span><span class="touch-only">swipe through them to take a closer look.</span>
+            current: <span class="hover-only">hover over one to stop it, or scroll to speed the current up.</span><span class="touch-only">swipe through them to take a closer look.</span>
           </p>
         </div>
         <ul class="status-key" aria-label="Status key">
@@ -420,6 +438,7 @@
       </header>
 
       <div class="finds-strip" role="region" aria-label="Works in progress">
+        <div class="finds-fit">
         <!-- Each <li> is one find. Status classes: sketch, prototype, in-progress.
              script below repeats the list once so the drift loops seamlessly. -->
         <ul class="finds-track">
@@ -462,9 +481,9 @@
             </article>
           </li>
         </ul>
+        </div>
       </div>
 
-      <p class="finds-note">More finds surface as they're built.</p>
       <nav class="finds-exits" aria-label="Leave the abyss">
         <a href="./#crossroads">Swim back up</a>
         <a href="projects/">Visit the reef</a>
@@ -531,6 +550,46 @@
         copy.setAttribute("aria-hidden", "true");
         copy.inert = true;
         track.append(copy);
+      });
+
+      // The current: the finds drift left at a steady pace (one loop every 70s); scrolling adds
+      // speed either way, which eases off again. With the lights on, hovering a find stops it;
+      // under the flashlight they keep drifting. Phones and touch screens swipe the strip instead.
+      const strip = document.querySelector(".finds-strip");
+      const fit = document.querySelector(".finds-fit");
+      const touchLayout = matchMedia("(max-width: 900px), (hover: none)");
+      const still = matchMedia("(prefers-reduced-motion: reduce)");
+      let offset = 0, boost = 0, half = 0, scale = 1, last = performance.now();
+      const showing = () => body.dataset.state === "flashlight" || body.dataset.state === "lit";
+      function measure() {
+        half = track.scrollWidth / 2;
+        scale = Math.min(1, strip.clientHeight / fit.offsetHeight) || 1; // cards shrink to fit short screens
+        fit.style.setProperty("--fit", scale);
+      }
+      addEventListener("resize", measure);
+      (function drift(now) {
+        const dt = Math.min(now - last, 50) / 1000;
+        last = now;
+        if (!half && showing() && !touchLayout.matches) measure();
+        if (half && showing() && !touchLayout.matches) {
+          const paused = still.matches || track.matches(":focus-within") || (body.dataset.state === "lit" && track.matches(":hover"));
+          offset += ((paused ? 0 : half / 70) + boost) * dt;
+          boost *= Math.pow(0.04, dt); // the extra speed fades over about a second
+          offset = ((offset % half) + half) % half;
+          track.style.transform = `translateX(${-offset}px)`;
+        }
+        requestAnimationFrame(drift);
+      })(last);
+      addEventListener("wheel", (e) => {
+        if (!showing() || touchLayout.matches) return;
+        e.preventDefault();
+        const d = (e.deltaY || e.deltaX) * (e.deltaMode === 1 ? 33 : 1); // lines (Firefox) to pixels
+        boost = Math.max(-4000, Math.min(4000, boost + d * 6));
+      }, { passive: false });
+      // tabbing to a find brings it into the middle of the strip
+      track.addEventListener("focusin", (e) => {
+        const li = e.target.closest("li");
+        if (li && !touchLayout.matches) offset = li.offsetLeft - (strip.clientWidth / scale - li.offsetWidth) / 2;
       });
     </script>
   </body>
