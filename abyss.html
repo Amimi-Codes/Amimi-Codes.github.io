@@ -292,7 +292,12 @@
         font-size: 14px;
         text-decoration: none;
       }
-      .finds-exits a:hover { border-color: #8a97a3; }
+      .finds-exits a { transition: border-color 0.2s, color 0.2s, box-shadow 0.2s; }
+      .finds-exits a:hover, .finds-exits a:focus-visible {
+        border-color: #ffbe4f;
+        color: #ffd48a;
+        box-shadow: 0 0 18px rgba(255, 190, 79, 0.45), inset 0 0 12px rgba(255, 190, 79, 0.12);
+      }
 
       /* the dark, with a hole of light that follows the pointer (moved with transform: no repaints) */
       .dark-overlay {
@@ -485,7 +490,7 @@
       </div>
 
       <nav class="finds-exits" aria-label="Leave the abyss">
-        <a href="./#crossroads">Swim back up</a>
+        <a href="./#crossroads">Return to crossroad</a>
         <a href="projects/">Visit the reef</a>
       </nav>
     </main>
