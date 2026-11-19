@@ -7,7 +7,7 @@
     <meta name="description" content="The Reef: Amy Cui's finished projects, from UX case studies to front-end builds and graphic design." />
     <title>Projects — Amy Cui</title>
     <link rel="stylesheet" href="../styles.css?v=48" />
-    <link rel="stylesheet" href="../reef.css?v=2" />
+    <link rel="stylesheet" href="../reef.css?v=3" />
     <script src="../script.js?v=47" defer></script>
     <script>
       // arriving from the crossroads: play the second half of its transition
@@ -203,7 +203,20 @@
       ><a href="#top">BACK TO SURFACE ↑</a>
     </footer>
 
+    <div class="to-abyss" aria-hidden="true"></div>
     <script>
+      // links down to the Abyss fade the screen to black first, like the crossroads does
+      const toAbyss = document.querySelector(".to-abyss");
+      document.querySelectorAll('a[href="../abyss"]').forEach((a) =>
+        a.addEventListener("click", (e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          e.preventDefault();
+          toAbyss.classList.add("is-on");
+          setTimeout(() => (location.href = a.href), 850);
+        })
+      );
+      addEventListener("pageshow", (e) => e.persisted && toAbyss.classList.remove("is-on")); // Back: undo the fade
+
       // filter chips: show the specimens of one kind (the undiscovered card only under "All")
       const chips = document.querySelectorAll(".reef-filters button");
       const items = document.querySelectorAll(".specimens > li");

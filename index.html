@@ -90,6 +90,7 @@
       inset: -4%;
       width: 108%;
       height: 108%;
+      max-width: none;
       object-fit: cover;
       pointer-events: none;
     }
@@ -405,35 +406,11 @@
        1. PUZZLE LOADING SCREEN
        ========================================================= -->
   <div id="loader-overlay" aria-label="Loading">
-    <svg id="ocean-bg-loader" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="waterGradLoader" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#0b465c" />
-          <stop offset="45%" stop-color="#072b3b" />
-          <stop offset="100%" stop-color="#03131b" />
-        </linearGradient>
-        <linearGradient id="rayGradLoader" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#7ef7e4" stop-opacity="0.45" />
-          <stop offset="100%" stop-color="#0a394a" stop-opacity="0" />
-        </linearGradient>
-        <filter id="oceanBlurLoader" x="-15%" y="-15%" width="130%" height="130%">
-          <feGaussianBlur stdDeviation="16" />
-        </filter>
-        <filter id="rayBlurLoader" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="24" />
-        </filter>
-      </defs>
-      <rect x="-100" y="-100" width="1640" height="1100" fill="url(#waterGradLoader)" />
-      <g filter="url(#rayBlurLoader)">
-        <polygon points="220,-80 420,-80 650,850 180,850" fill="url(#rayGradLoader)" opacity="0.2" />
-        <polygon points="650,-80 860,-80 1120,850 640,850" fill="url(#rayGradLoader)" opacity="0.22" />
-        <polygon points="1030,-80 1190,-80 1440,800 1080,800" fill="url(#rayGradLoader)" opacity="0.16" />
-      </g>
-      <g filter="url(#oceanBlurLoader)">
-        <path d="M-80,720 Q140,560 320,660 T760,640 T1200,590 T1520,680 L1520,980 L-80,980 Z" fill="#092936" />
-        <path d="M-100,795 Q420,750 860,800 T1540,775 L1540,980 L-100,980 Z" fill="#0d3440" />
-      </g>
-    </svg>
+    <!-- a pre-blurred picture of the crossroads itself, so the intro fades into the real scene -->
+    <picture>
+      <source media="(max-width: 780px)" srcset="assets/crossroads-blur-mob.webp" />
+      <img id="ocean-bg-loader" src="assets/crossroads-blur-desk.webp" alt="" fetchpriority="high" />
+    </picture>
 
     <div class="puzzle-stage">
       <svg id="puzzle-svg" viewBox="-75 -55 420 304" aria-hidden="true">

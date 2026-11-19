@@ -361,17 +361,30 @@ scene.add(sign);
   post.castShadow = post.receiveShadow = true;
   sign.add(post);
 
-  // beacon
+  // lamp
   const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.12, 16), new THREE.MeshStandardMaterial({ color: '#4a4436', metalness: 0.8, roughness: 0.55 }));
   collar.position.y = 4.28;
   sign.add(collar);
   const orb = new THREE.Mesh(new THREE.SphereGeometry(0.17, 32, 16), new THREE.MeshStandardMaterial({ color: '#ffcf6b', emissive: '#ffae3d', emissiveIntensity: 5 }));
   orb.position.y = 4.48;
   sign.add(orb);
-  const beacon = new THREE.PointLight('#ffb44f', 9, 9, 2);
-  beacon.position.y = 4.5;
-  sign.add(beacon);
-  sign.userData.beacon = beacon;
+  // a soft halo instead of a real point light: a light is computed for every lit pixel on
+  // screen (the whole seabed), the halo only where it is drawn; bloom makes the orb shine
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: canvasTex(64, 64, (g, w, h) => {
+      const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+      r.addColorStop(0, 'rgba(255,190,90,0.9)');
+      r.addColorStop(0.35, 'rgba(255,170,70,0.35)');
+      r.addColorStop(1, 'rgba(255,160,60,0)');
+      g.fillStyle = r;
+      g.fillRect(0, 0, w, h);
+    }),
+    blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+  }));
+  halo.scale.setScalar(2.2);
+  halo.position.y = 4.48;
+  sign.add(halo);
+  sign.userData.halo = halo;
   sign.userData.orb = orb;
 }
 
@@ -554,30 +567,6 @@ const snowMats = [
   snowLayer(45, [-5, 5, 6, 8.8], 70, 0.0, 0.07)   // out-of-focus bokeh right in front of the lens
 ];
 
-/* ---------- fish school ---------- */
-const FISH = 46;
-const fishGeo = new THREE.ConeGeometry(0.055, 0.26, 6);
-fishGeo.rotateX(Math.PI / 2);
-fishGeo.scale(0.55, 1, 1);
-const fish = new THREE.InstancedMesh(fishGeo, new THREE.MeshStandardMaterial({ color: '#9fc4cf', metalness: 0.7, roughness: 0.3 }), FISH);
-const fishOff = Array.from({ length: FISH }, () => [(rand() - 0.5) * 3, (rand() - 0.5) * 1, (rand() - 0.5) * 1.8, rand() * 6.28]);
-scene.add(fish);
-const fd = new THREE.Object3D(), fc = new THREE.Vector3(), fn = new THREE.Vector3();
-const schoolAt = (t, v) => v.set(Math.sin(t * 0.06) * 10, 2.8 + Math.sin(t * 0.11) * 0.9, -8 + Math.cos(t * 0.06) * 3.5);
-function updateFish(t) {
-  schoolAt(t, fc); schoolAt(t + 0.2, fn);
-  const dir = fn.sub(fc).normalize();
-  for (let i = 0; i < FISH; i++) {
-    const [ox, oy, oz, ph] = fishOff[i];
-    fd.position.set(fc.x + ox + Math.sin(t * 0.8 + ph) * 0.25, fc.y + oy + Math.sin(t * 1.1 + ph) * 0.12, fc.z + oz + Math.cos(t * 0.7 + ph) * 0.25);
-    fd.lookAt(fd.position.x + dir.x, fd.position.y + dir.y, fd.position.z + dir.z);
-    fd.rotateY(Math.sin(t * 9 + ph) * 0.18);
-    fd.updateMatrix();
-    fish.setMatrixAt(i, fd.matrix);
-  }
-  fish.instanceMatrix.needsUpdate = true;
-}
-
 /* ---------- something big, far away ---------- */
 const giant = new THREE.Group();
 {
@@ -621,11 +610,13 @@ const mobile = matchMedia('(max-width: 780px)'); // same breakpoint as the stack
 const resumeLink = document.querySelector('.resume-skip'), pearlPos = new THREE.Vector3();
 portal.onChange = (key) => { selected = key; };
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(9, 9), look = new THREE.Vector2();
+let ptrMoved = true, pickTick = 0;
 canvas.addEventListener('pointermove', (e) => {
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   look.copy(ptr);
+  ptrMoved = true;
 });
-canvas.addEventListener('pointerleave', () => ptr.set(9, 9));
+canvas.addEventListener('pointerleave', () => { ptr.set(9, 9); ptrMoved = true; });
 canvas.addEventListener('click', () => {
   if (hovered) portal.selectChoice?.(hovered, true);
   else if (hoverResume) portal.openResume?.();
@@ -674,15 +665,17 @@ function frame(t) {
 
   rays.forEach((r) => { r.material.uniforms.uOpacity.value = 0.2 + 0.08 * Math.sin(t * 0.3 + r.userData.phase); });
   sign.visible = !mobile.matches;
-  sign.userData.beacon.intensity = 8 + Math.sin(t * 2.1) * 1.4;
+  sign.userData.halo.material.opacity = 0.85 + Math.sin(t * 2.1) * 0.15;
   sign.userData.orb.material.emissiveIntensity = 4.5 + Math.sin(t * 2.1) * 1;
 
-  pick();
+  // what's under the pointer: when it moves, and every 10th frame for the camera's sway
+  if (ptrMoved || ++pickTick % 10 === 0) { pick(); ptrMoved = false; }
   for (const k in planks) {
     const p = planks[k];
     const target = mobile.matches ? 0 : k === hovered ? 1 : k === selected ? 0.75 : 0;
     p.glow += (target - p.glow) * 0.12;
     p.hull.material.opacity = p.glow * 0.85;
+    p.hull.visible = p.glow > 0.01; // invisible outlines still cost a draw: skip them
     p.mat.emissive.setRGB(0.005 * p.glow, 0.05 * p.glow, 0.045 * p.glow);
   }
   // keyboard focus on the resume link opens the clam too, with the focus ring drawn on the pearl
@@ -699,7 +692,6 @@ function frame(t) {
   pearl.material.emissiveIntensity += ((resumeLit ? 1.8 : 0.75 + Math.sin(t * 1.6) * 0.12) - pearl.material.emissiveIntensity) * 0.1;
   pearlLight.intensity = 0.4 + pearl.material.emissiveIntensity * 0.6;
 
-  updateFish(t);
   const cycle = (t % 48) / 30;          // drifts past every 48 s, takes 30 s
   giant.position.x = cycle <= 1 ? -110 + cycle * 220 : -300;
   giant.position.y = 9 + Math.sin(t * 0.15) * 1.5;

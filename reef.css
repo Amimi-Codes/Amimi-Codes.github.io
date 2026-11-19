@@ -578,3 +578,20 @@
   .arrive-reef .reef-frame, .arrive-reef .site-nav { animation: none; }
   .arrive-reef body::after { display: none; }
 }
+
+/* fade to black on the way down to the Abyss */
+.to-abyss {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.8s ease-in, visibility 0s 0.8s;
+}
+.to-abyss.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.8s ease-in;
+}
