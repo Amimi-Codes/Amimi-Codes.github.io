@@ -1,0 +1,193 @@
+/* Contact page: a message in a bottle, washed up on the seabed */
+.shore-page {
+  --ink: #2a1d10;
+  --parchment: #f3e2b8;
+  --mint: #6ef7df;
+  --amber: #ffbe4f;
+  background: #04121c;
+  color: #e6f7fa;
+}
+.shore-page :focus-visible { outline: 3px solid var(--amber); outline-offset: 4px; }
+
+.shore {
+  position: relative;
+  min-height: calc(100vh - 76px);
+  min-height: calc(100svh - 76px);
+  overflow: hidden;
+  isolation: isolate;
+  background: radial-gradient(ellipse at 60% -10%, #2a9cc0 0%, #0b5d7f 22%, #06374d 52%, #04121c 100%);
+}
+
+/* the water */
+.shore-sea { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.ray {
+  position: absolute;
+  top: -20%;
+  width: 18vw;
+  height: 140%;
+  background: linear-gradient(#8cefff40, transparent 75%);
+  filter: blur(18px);
+  transform-origin: top;
+  animation: ray-sway 9s ease-in-out infinite alternate;
+}
+.ray:nth-child(1) { left: 18%; rotate: 14deg; }
+.ray:nth-child(2) { left: 48%; rotate: 6deg; width: 10vw; animation-delay: -3s; opacity: 0.7; }
+.ray:nth-child(3) { left: 72%; rotate: -8deg; animation-delay: -6s; opacity: 0.6; }
+@keyframes ray-sway { to { transform: rotate(5deg); opacity: 0.55; } }
+.snow { /* marine snow: tiled specks drifting down */
+  position: absolute;
+  inset: -200px 0 0;
+  background-image:
+    radial-gradient(circle, #c8f6ff 0 1.2px, transparent 2px),
+    radial-gradient(circle, #c8f6ff99 0 1px, transparent 1.6px);
+  background-size: 180px 200px, 110px 130px;
+  background-position: 0 0, 60px 40px;
+  opacity: 0.55;
+  animation: snow-fall 26s linear infinite;
+}
+.snow-far { background-size: 90px 100px, 70px 80px; opacity: 0.3; animation-duration: 40s; }
+@keyframes snow-fall { to { transform: translateY(200px); } }
+
+/* the seabed */
+.shore-sand {
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 0;
+  z-index: -1;
+  height: 190px;
+  border-radius: 50% 50% 0 0 / 60px 60px 0 0;
+  background:
+    radial-gradient(ellipse 40% 30% at 30% 10%, #d8c99d66, transparent),
+    radial-gradient(ellipse 30% 25% at 78% 30%, #6d634a55, transparent),
+    linear-gradient(#a2967255, #4d4636 85%);
+  box-shadow: 0 -30px 60px #04121c;
+  opacity: 0.7;
+}
+
+.shore-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: center;
+  padding: clamp(3rem, 9vh, 6.5rem) 0 clamp(6rem, 16vh, 10rem);
+}
+
+.shore-kicker {
+  margin: 0 0 1.2rem;
+  font: 500 0.95rem/1 "Pixelify Sans", monospace;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+}
+.shore-intro h1 {
+  margin: 0;
+  font: 700 clamp(3rem, 7.5vw, 6.6rem)/0.98 Manrope, sans-serif;
+  letter-spacing: -0.06em;
+  color: #f2fffb;
+}
+.shore-intro h1 em { font-style: normal; color: var(--mint); text-shadow: 0 0 28px #6ef7df55; }
+.shore-lede { max-width: 33rem; margin: 1.6rem 0 2.4rem; font-size: 1.15rem; line-height: 1.7; color: #c3dde3; }
+
+/* the resume, as the pearl from the crossroads */
+.pearl-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 1.4rem 0.7rem 0.7rem;
+  border: 1px solid #6ef7df55;
+  border-radius: 999px;
+  background: #03131ccc;
+  color: #fff;
+  font: 700 1rem/1.2 Manrope, sans-serif;
+  text-decoration: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.pearl {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0 12%, #e6fbff 30%, #9fdcea 70%, #5aa9bd 100%);
+  box-shadow: 0 0 18px #9ff4ff99, inset -4px -6px 10px #2c7d9455;
+  animation: pearl-glow 3.2s ease-in-out infinite;
+}
+@keyframes pearl-glow { 50% { box-shadow: 0 0 30px #9ff4ffcc, inset -4px -6px 10px #2c7d9455; } }
+.pearl-text small { display: block; margin-top: 0.2rem; font: 400 0.75rem "DM Sans", sans-serif; color: #98bcc7; }
+.pearl-link:hover, .pearl-link:focus-visible { border-color: var(--mint); box-shadow: 0 0 22px #6ef7df44; }
+.shore-resume { max-width: 30rem; margin: 1.4rem 0 0; font-size: 0.92rem; line-height: 1.6; color: #98bcc7; }
+
+/* the note from the bottle */
+.note-spot { position: relative; padding-bottom: 3rem; }
+.note {
+  position: relative;
+  padding: 3.2rem clamp(1.6rem, 4vw, 2.6rem) 2.2rem;
+  background:
+    radial-gradient(ellipse at 15% 10%, #fff6dc, transparent 55%),
+    radial-gradient(ellipse at 90% 95%, #e2c98f, transparent 50%),
+    var(--parchment);
+  color: var(--ink);
+  rotate: -2deg;
+  box-shadow: 0 30px 60px #00000080, inset 0 0 40px #b8955555;
+  /* softly torn top and bottom edges */
+  -webkit-mask: radial-gradient(5px 3px at 50% 0, #0000 98%, #000) 0 0 / 9px 51% repeat-x,
+    radial-gradient(5px 3px at 50% 100%, #0000 98%, #000) 0 100% / 13px 51% repeat-x;
+  mask: radial-gradient(5px 3px at 50% 0, #0000 98%, #000) 0 0 / 9px 51% repeat-x,
+    radial-gradient(5px 3px at 50% 100%, #0000 98%, #000) 0 100% / 13px 51% repeat-x;
+  animation: note-drift 6s ease-in-out infinite;
+}
+@keyframes note-drift { 50% { translate: 0 -8px; rotate: -1deg; } }
+.note-ribbon {
+  position: absolute;
+  top: 1.2rem;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: #c8463e;
+  box-shadow: 0 2px 0 #9a2f29;
+}
+.note-title {
+  margin: 0.4rem 0 1.4rem;
+  font: 500 1.35rem/1.2 "Pixelify Sans", monospace;
+  color: var(--ink);
+}
+.note-list { margin: 0; padding: 0; list-style: none; border-top: 2px dashed #2a1d1040; }
+.note-list a {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem 1rem;
+  min-height: 64px;
+  padding: 0.9rem 0.2rem;
+  border-bottom: 2px dashed #2a1d1040;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.2s, padding 0.2s;
+}
+.note-list a:hover, .note-list a:focus-visible { background: #2a1d100f; padding-inline: 0.8rem; }
+.note-label { font: 500 0.95rem "Pixelify Sans", monospace; color: #7a4a24; }
+.note-value { font: 700 1.05rem Manrope, sans-serif; overflow-wrap: anywhere; }
+.note-sign { margin: 1.4rem 0 0; text-align: right; font: italic 1.05rem "DM Sans", sans-serif; color: #5a4128; }
+
+.note-bottle {
+  position: absolute;
+  left: -14%;
+  bottom: -1.2rem;
+  width: min(260px, 62%);
+  rotate: -6deg;
+  filter: drop-shadow(0 0 10px #6ef7df33);
+}
+
+.shore-page .footer { color: #5f8792; }
+
+@media (max-width: 900px) {
+  .shore-wrap { grid-template-columns: 1fr; }
+  .note-spot { max-width: 520px; }
+  .note-bottle { left: auto; right: -2%; }
+}
+@media (max-width: 780px) {
+  .shore-page .footer { flex-direction: column; justify-content: center; gap: 0.8rem; padding: 2rem 0; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ray, .snow, .pearl, .note { animation: none; }
+}

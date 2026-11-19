@@ -3,90 +3,85 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#04121c" />
+    <meta name="description" content="Contact Amy Cui: email, LinkedIn, GitHub and resume." />
     <title>Contact — Amy Cui</title>
     <link rel="stylesheet" href="styles.css?v=48" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500&display=swap" />
+    <link rel="stylesheet" href="shore.css?v=1" />
     <script src="script.js?v=47" defer></script>
   </head>
-  <body>
+  <body class="shore-page">
     <header class="site-nav">
       <div class="wrap nav-inner">
         <a class="logo" href="./#crossroads" aria-label="Designs By Amy, back to the crossroads">Designs By Amy</a>
         <nav aria-label="Main navigation">
-          <a href="projects/">Projects</a><a href="about">About Me</a><a href="contact">Contact <span aria-hidden="true">↗</span></a>
+          <a href="projects/">Projects</a><a href="about">About Me</a><a href="contact" aria-current="page">Contact <span aria-hidden="true">↗</span></a>
         </nav>
       </div>
     </header>
-    <main>
-      <section class="page-hero">
-        <div class="wrap">
-          <p class="eyebrow"><svg class="sparkle" viewBox="0 0 40 40" aria-hidden="true">
-              <defs>
-                <linearGradient
-                  id="sparkle-metal"
-                  x1="0"
-                  y1="0"
-                  x2=".6"
-                  y2=".6"
-                  spreadMethod="reflect"
-                >
-                  <stop offset="0" stop-color="#c4822f" />
-                  <stop offset=".4" stop-color="#ffd77f" />
-                  <stop offset=".55" stop-color="#fffdf0" />
-                  <stop offset=".7" stop-color="#ffc659" />
-                  <stop offset="1" stop-color="#d08c33" />
-                  <animateTransform
-                    attributeName="gradientTransform"
-                    type="translate"
-                    values="0 0;1.2 1.2"
-                    dur="2.4s"
-                    repeatCount="indefinite"
-                  />
-                </linearGradient>
-              </defs>
-              <path
-                fill="url(#sparkle-metal)"
-                d="M17 4C18 14 20 17 30 19 20 21 18 24 17 36 16 24 14 21 4 19 14 17 16 14 17 4Z"
-              />
-              <path
-                class="s-small"
-                fill="url(#sparkle-metal)"
-                d="M32 1C32.5 5 33.5 6 37 6.5 33.5 7 32.5 8 32 12 31.5 8 30.5 7 27 6.5 30.5 6 31.5 5 32 1Z"
-              />
-              <path
-                class="s-small"
-                fill="url(#sparkle-metal)"
-                d="M33 28C33.4 31 34 31.6 36.5 32 34 32.4 33.4 33 33 36 32.6 33 32 32.4 29.5 32 32 31.6 32.6 31 33 28Z"
-              />
-            </svg> RESUME / CONTACT / SOCIALS</p>
-          <h1>Find your<br /><em>missing piece</em></h1>
-          <p>Reach out for design, research, frontend development, or event collaboration!</p>
-        </div>
-      </section>
-      <section class="page-content wrap contact-grid">
-        <div>
-          <p class="label">SAY HELLO</p>
-          <h2>Find me<br />where ideas<br />drift</h2>
-          <div class="resume-flight" aria-label="Resume">
-            <a class="resume-airplane" href="assets/resume.pdf" target="_blank" rel="noopener" aria-label="Open Amy Cui's resume (PDF, opens in a new tab)" title="Open resume">
-              <img class="resume-plane-svg" src="assets/resume-plane.svg" alt="" aria-hidden="true" />
-            </a>
-            <span class="resume-flight-hint">Catch my resume ↗</span>
-          </div>
-        </div>
-        <div>
-          <div class="contact-list">
-            <a href="mailto:amy.cui4197@gmail.com"><span>Email: </span><span>amy.cui4197@gmail.com</span></a>
-            <a href="https://www.linkedin.com/in/amy-cui-linked/"><span>LinkedIn</span><span>Connect</span></a>
-            <a href="https://github.com/Amimi-Codes"><span>GitHub</span><span>View Profile</span></a>
-          </div>
-          <p class="resume-note"><strong>Resume</strong><br />My experience includes full-stack development, UX research and product design, plus event logistics, marketing, outreach, and staffing.</p>
-        </div>
-      </section>
+
+    <main class="shore">
+      <!-- the water: light rays and drifting marine snow, all decoration -->
+      <div class="shore-sea" aria-hidden="true">
+        <i class="ray"></i><i class="ray"></i><i class="ray"></i>
+        <i class="snow"></i><i class="snow snow-far"></i>
+      </div>
+
+      <div class="shore-wrap wrap">
+        <section class="shore-intro">
+          <p class="shore-kicker">Message in a bottle</p>
+          <h1>Leave me a <em>message</em></h1>
+          <p class="shore-lede">
+            Reach out for design, research, frontend development, or event collaboration!
+            Cast a line out to sea and I'll write back.
+          </p>
+
+          <a class="pearl-link" href="assets/resume.pdf" target="_blank" rel="noopener">
+            <span class="pearl" aria-hidden="true"></span>
+            <span class="pearl-text">Open my resume <small>PDF · opens in a new tab</small></span>
+          </a>
+          <p class="shore-resume">
+            My experience includes full-stack development, UX research and product design, plus
+            event logistics, marketing, outreach, and staffing.
+          </p>
+        </section>
+
+        <section class="note-spot" aria-labelledby="note-title">
+          <article class="note">
+            <span class="note-ribbon" aria-hidden="true"></span>
+            <h2 id="note-title" class="note-title">Ways to reach me</h2>
+            <ul class="note-list">
+              <li>
+                <a href="mailto:amy.cui4197@gmail.com"><span class="note-label">Email</span><span class="note-value">amy.cui4197@gmail.com</span></a>
+              </li>
+              <li>
+                <a href="https://www.linkedin.com/in/amy-cui-linked/"><span class="note-label">LinkedIn</span><span class="note-value">Connect <span aria-hidden="true">↗</span></span></a>
+              </li>
+              <li>
+                <a href="https://github.com/Amimi-Codes"><span class="note-label">GitHub</span><span class="note-value">View profile <span aria-hidden="true">↗</span></span></a>
+              </li>
+            </ul>
+            <p class="note-sign">— Amy</p>
+          </article>
+
+          <!-- the bottle it came in, uncorked, in the sand -->
+          <svg class="note-bottle" viewBox="0 0 220 90" aria-hidden="true">
+            <ellipse cx="110" cy="80" rx="96" ry="7" fill="#000" opacity=".25" />
+            <path d="M14 46c0-17 9-27 26-27h70c10 0 16 4 24 10l20 7h24c4 0 6 3 6 6v8c0 3-2 6-6 6h-24l-20 7c-8 6-14 10-24 10H40C23 73 14 63 14 46z" fill="rgba(127,209,171,.32)" stroke="#9fe6c4" stroke-width="2" />
+            <path d="M30 34c4-6 10-8 18-8h56" fill="none" stroke="#e9fff5" stroke-width="3" stroke-linecap="round" opacity=".7" />
+            <rect x="196" y="40" width="18" height="14" rx="3" fill="#8a5a33" transform="rotate(18 205 47)" />
+          </svg>
+        </section>
+      </div>
+
+      <div class="shore-sand" aria-hidden="true"></div>
     </main>
+
     <footer class="footer wrap">
       <span>© <span id="year">2026</span> AMY CUI</span
       ><span>MADE WITH A LITTLE SALT WATER</span
-      ><a href="#top">BACK TO SURFACE ↑</a>
+      ><a href="./#crossroads">BACK TO THE CROSSROADS ↑</a>
     </footer>
   </body>
 </html>
