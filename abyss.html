@@ -123,7 +123,7 @@
         background: #10406b;
         animation: bob 3s ease-in-out infinite;
       }
-      .item-icon svg { width: 100%; height: auto; display: block; }
+      .item-icon svg { width: 100%; height: auto; display: block; transform: scaleX(-1); } /* beam to the right */
       .beam { animation: flicker 4s linear infinite; }
       @keyframes bob { 50% { transform: translateY(-6px); } }
       @keyframes flicker { 0%, 47%, 53%, 100% { opacity: 0.5; } 50% { opacity: 0.25; } }
@@ -213,7 +213,8 @@
         list-style: none;
         animation: drift 70s linear infinite;
       }
-      .finds-track:hover, .finds-track:focus-within { animation-play-state: paused; }
+      /* hovering stops the drift with the lights on; under the flashlight it keeps drifting past */
+      [data-state="lit"] .finds-track:hover, .finds-track:focus-within { animation-play-state: paused; }
       @keyframes drift { to { transform: translateX(-50%); } }
       .finds-track > li { flex: none; padding-right: 40px; }
       .find {
