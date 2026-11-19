@@ -549,3 +549,32 @@
   }
   .sonar-blip { opacity: 0.8; }
 }
+
+/* arriving from the crossroads: the HUD ring the camera dove into opens up and the guide settles in */
+.arrive-reef .reef-frame { animation: reef-arrive 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.arrive-reef .site-nav { animation: reef-arrive-fade 0.5s 0.25s both; }
+.arrive-reef body::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 30;
+  width: 60vmin;
+  height: 60vmin;
+  border: 2px solid var(--reef-mint, #6ef7df);
+  border-radius: 50%;
+  box-shadow: 0 0 24px #6ef7df88, inset 0 0 24px #6ef7df55;
+  translate: -50% -50%;
+  pointer-events: none;
+  animation: reef-ring-out 0.75s ease-out forwards;
+}
+@keyframes reef-arrive { from { opacity: 0; transform: scale(0.94); } }
+@keyframes reef-arrive-fade { from { opacity: 0; } }
+@keyframes reef-ring-out {
+  from { opacity: 0.9; transform: scale(0.35); }
+  to { opacity: 0; transform: scale(2.4); visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrive-reef .reef-frame, .arrive-reef .site-nav { animation: none; }
+  .arrive-reef body::after { display: none; }
+}

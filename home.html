@@ -11,6 +11,24 @@
     <title>Amy Cui — Design in motion</title>
     <link rel="stylesheet" href="styles.css?v=48" />
     <script src="script.js?v=47" defer></script>
+    <script src="bubbles.js" defer></script>
+    <script>
+      // arriving from the crossroads: play the second half of its transition
+      try { if (sessionStorage.getItem("arrive") === "surface") { sessionStorage.removeItem("arrive"); document.documentElement.classList.add("arrive-surface"); } } catch (e) {}
+    </script>
+    <style>
+      /* the water from the crossroads clears to show the page */
+      .arrive-surface body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        pointer-events: none;
+        background: radial-gradient(circle at 72% 50%, #176d78, #0b3a47 38%, #061b27 77%);
+        animation: arrive-clear 0.8s 0.15s ease-out forwards;
+      }
+      @keyframes arrive-clear { to { opacity: 0; visibility: hidden; } }
+    </style>
   </head>
   <body class="home-page">
     <a class="skip-link" href="#featured">Skip to featured projects</a>

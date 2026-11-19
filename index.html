@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#010c14" />
   <meta name="description" content="Amy Cui — designer, researcher, and frontend developer. Pick a path: the surface, the reef or the abyss." />
   <title>Amy Cui — Designs By Amy</title>
+  <script src="bubbles.js" defer></script>
 
   <!-- Fonts: Manrope (600, 700, 800) & DM Sans (400, 700) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -340,6 +341,55 @@
       letter-spacing: 0.03em;
     }
 
+
+    /* =========================================================
+       TRANSITIONS OUT OF THE CROSSROADS
+       ========================================================= */
+    .travel { position: fixed; inset: 0; z-index: 900; pointer-events: none; opacity: 0; visibility: hidden; }
+    .travel.is-on { visibility: visible; }
+    @keyframes travel-fade { to { opacity: 1; } }
+    /* surface: bubbles rise (bubbles.js) and the water turns the colour of the homepage hero */
+    .travel-surface { background: radial-gradient(circle at 72% 50%, #176d78, #0b3a47 38%, #061b27 77%); }
+    .travel-surface.is-on { animation: travel-fade 0.6s 0.45s ease-in forwards; }
+    /* abyss: fade to black */
+    .travel-abyss { background: #000; }
+    .travel-abyss.is-on { animation: travel-fade 0.8s ease-in forwards; }
+    /* reef: a sci-fi panel tilts up, then the camera dives into its centre ring */
+    /* kept visible (but empty) so the panel is drawn ahead of time, not on the first frame of the trip */
+    .travel-reef { opacity: 1; visibility: visible; display: grid; place-items: center; overflow: hidden; background-color: rgba(4, 18, 28, 0); }
+    .travel-reef.is-on { animation: reef-dim 0.45s ease-out forwards; }
+    @keyframes reef-dim { to { background-color: rgba(4, 18, 28, 0.85); } }
+    .travel-reef::after { /* the Reef page's grid, which the ring opens onto */
+      content: ""; position: absolute; inset: 0; opacity: 0;
+      background:
+        linear-gradient(#2fd3c50a 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(90deg, #2fd3c50a 1px, transparent 1px) 0 0 / 32px 32px,
+        #04121c;
+    }
+    .travel-reef.is-on::after { animation: travel-fade 0.4s 1.15s ease-in forwards; }
+    .hud-zoom, .hud-tilt { will-change: transform, opacity; } /* drawn once, then just moved: no redraws mid-zoom */
+    .hud-zoom { width: min(94vw, 1100px); }
+    .is-on .hud-zoom { animation: hud-zoom 0.7s 0.9s cubic-bezier(0.55, 0, 0.9, 0.35) forwards; }
+    @keyframes hud-zoom { 70% { opacity: 1; } to { transform: scale(7); opacity: 0; } }
+    .hud-tilt { opacity: 0; transform: perspective(1100px) rotateX(34deg) scale(0.8); }
+    .is-on .hud-tilt { animation: hud-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    @keyframes hud-in { to { opacity: 1; transform: none; } }
+    .hud { display: block; width: 100%; height: auto; overflow: visible; }
+    .hud text { font-family: "DM Sans", sans-serif; font-weight: 700; fill: #bfefff; }
+    .hud .hud-title { font: 800 24px Manrope, sans-serif; letter-spacing: 0.08em; fill: #e6f7fa; }
+    .hud .hud-big { font: 800 30px Manrope, sans-serif; letter-spacing: 0.12em; fill: #e6f7fa; }
+    .hud .hud-small, .hud-small text { font-size: 13px; letter-spacing: 0.14em; }
+    .hud-key { fill: rgba(56, 214, 255, 0.15); stroke: #38d6ff; }
+    .hud-track { fill: rgba(56, 214, 255, 0.08); }
+    .hud-bar { transform-box: fill-box; transform-origin: left; transform: scaleX(0); }
+    .is-on .hud-bar { animation: hud-bar 0.45s calc(0.15s + var(--d)) ease-out forwards; }
+    @keyframes hud-bar { to { transform: none; } }
+    /* rings spin up and bars fill while the panel boots, then hold still so the dive only moves pixels */
+    .is-on .hud-spin { animation: hud-spin 0.85s cubic-bezier(0.3, 0.7, 0.4, 1) forwards; }
+    .is-on .hud-spin-rev { animation: hud-spin-rev 0.85s cubic-bezier(0.3, 0.7, 0.4, 1) forwards; }
+    @keyframes hud-spin { from { transform: rotate(-120deg); } }
+    @keyframes hud-spin-rev { from { transform: rotate(150deg); } }
+
     @media (max-width: 780px) {
       .hud-cards-grid { grid-template-columns: 1fr; gap: 8px; }
       .hud-dialogue-inner { padding: 20px 16px 14px; }
@@ -513,6 +563,74 @@
     <!-- after the cards in the tab order; when focused it sits on the 3D pearl -->
     <a class="resume-skip" href="assets/resume.pdf" target="_blank" rel="noopener">Open resume</a>
   </main>
+
+  <!-- transitions out of the crossroads (started by travel() below) -->
+  <div class="travel travel-surface" aria-hidden="true"></div>
+  <div class="travel travel-abyss" aria-hidden="true"></div>
+  <div class="travel travel-reef" aria-hidden="true">
+    <div class="hud-zoom">
+      <div class="hud-tilt">
+        <svg class="hud" viewBox="0 0 1000 600">
+          <!-- panel frame -->
+          <path d="M40 20 H600 L630 40 H960 L980 60 V540 L960 580 H60 L20 540 V60 Z" fill="rgba(4,24,36,.55)" stroke="#2fd3c5" stroke-opacity=".55" stroke-width="2" />
+          <path d="M40 20 H300" stroke="#6ef7df" stroke-width="5" />
+          <path d="M700 580 H930" stroke="#38d6ff" stroke-width="5" />
+          <g stroke="#38d6ff" stroke-width="4" opacity=".8"><path d="M640 22 l10 12 M656 22 l10 12 M672 22 l10 12 M688 22 l10 12" /></g>
+
+          <!-- left: field guide readout with power-grid bars -->
+          <text x="60" y="78" class="hud-title">FIELD <tspan fill="#ff9a3c">GUIDE</tspan></text>
+          <path d="M60 92 H300" stroke="#ff9a3c" stroke-width="2" />
+          <g class="hud-rows">
+            <g transform="translate(60 120)"><rect width="34" height="22" class="hud-key" /><text x="17" y="16" class="hud-small" text-anchor="middle">A1</text><rect x="44" y="4" width="220" height="14" class="hud-track" /><rect x="44" y="4" width="190" height="14" class="hud-bar" fill="#38d6ff" style="--d: 0s" /></g>
+            <g transform="translate(60 156)"><rect width="34" height="22" class="hud-key" /><text x="17" y="16" class="hud-small" text-anchor="middle">A2</text><rect x="44" y="4" width="220" height="14" class="hud-track" /><rect x="44" y="4" width="150" height="14" class="hud-bar" fill="#ff9a3c" style="--d: .06s" /></g>
+            <g transform="translate(60 192)"><rect width="34" height="22" class="hud-key" /><text x="17" y="16" class="hud-small" text-anchor="middle">A3</text><rect x="44" y="4" width="220" height="14" class="hud-track" /><rect x="44" y="4" width="205" height="14" class="hud-bar" fill="#38d6ff" style="--d: .12s" /></g>
+            <g transform="translate(60 228)"><rect width="34" height="22" class="hud-key" /><text x="17" y="16" class="hud-small" text-anchor="middle">A4</text><rect x="44" y="4" width="220" height="14" class="hud-track" /><rect x="44" y="4" width="120" height="14" class="hud-bar" fill="#ff9a3c" style="--d: .18s" /></g>
+            <g transform="translate(60 264)"><rect width="34" height="22" class="hud-key" /><text x="17" y="16" class="hud-small" text-anchor="middle">B1</text><rect x="44" y="4" width="220" height="14" class="hud-track" /><rect x="44" y="4" width="170" height="14" class="hud-bar" fill="#38d6ff" style="--d: .24s" /></g>
+          </g>
+          <g fill="none" stroke="#38d6ff" stroke-width="2.5">
+            <circle cx="80" cy="340" r="12" /><circle cx="120" cy="340" r="12" stroke="#ff9a3c" /><circle cx="160" cy="340" r="12" /><circle cx="200" cy="340" r="12" />
+          </g>
+          <g fill="#38d6ff"><circle cx="80" cy="340" r="5" /><circle cx="160" cy="340" r="5" /></g>
+          <g fill="none" stroke="#2fd3c5" stroke-opacity=".6"><path d="M60 400 H320 M60 430 H280 M60 460 H300 M60 490 H250" /></g>
+          <text x="60" y="525" class="hud-small">SPECIMENS CATALOGUED · 03</text>
+
+          <!-- centre: the ring the camera dives into -->
+          <g transform="translate(500 300)">
+            <circle r="168" fill="none" stroke="#2fd3c5" stroke-opacity=".35" />
+            <g class="hud-spin"><circle r="150" fill="none" stroke="#38d6ff" stroke-width="10" stroke-dasharray="3 9" opacity=".7" /></g>
+            <g class="hud-spin-rev"><circle r="122" fill="none" stroke="#6ef7df" stroke-width="16" stroke-dasharray="70 26" opacity=".85" /></g>
+            <g class="hud-spin"><circle r="96" fill="none" stroke="#ff9a3c" stroke-width="8" stroke-dasharray="120 484" /><circle r="96" fill="none" stroke="#38d6ff" stroke-width="2" /></g>
+            <circle r="70" fill="rgba(6,40,56,.9)" stroke="#6ef7df" stroke-width="3" />
+            <g class="hud-spin-rev" stroke="#6ef7df" stroke-width="2"><path d="M0 -60 V-48 M0 48 V60 M-60 0 H-48 M48 0 H60" /></g>
+            <text y="-6" class="hud-big" text-anchor="middle">REEF</text>
+            <text y="20" class="hud-small" text-anchor="middle" fill="#ff9a3c">DEPTH 30 M</text>
+          </g>
+
+          <!-- right: a smaller gauge, warning triangles and readouts -->
+          <g transform="translate(820 170)">
+            <circle r="78" fill="none" stroke="#2fd3c5" stroke-opacity=".5" />
+            <g class="hud-spin"><circle r="62" fill="none" stroke="#38d6ff" stroke-width="12" stroke-dasharray="40 16" opacity=".75" /></g>
+            <circle r="62" fill="none" stroke="#ff9a3c" stroke-width="12" stroke-dasharray="70 400" />
+            <circle r="34" fill="rgba(6,40,56,.9)" stroke="#6ef7df" stroke-width="2" />
+            <path d="M0 -16 L14 10 H-14 Z" fill="none" stroke="#6ef7df" stroke-width="3" />
+          </g>
+          <g fill="none" stroke-width="3">
+            <path d="M690 300 l14 -24 l14 24 z" stroke="#ff9a3c" /><path d="M730 300 l14 -24 l14 24 z" stroke="#38d6ff" /><path d="M770 300 l14 -24 l14 24 z" stroke="#38d6ff" /><path d="M810 300 l14 -24 l14 24 z" stroke="#ff9a3c" />
+          </g>
+          <g class="hud-small">
+            <text x="690" y="350">HABITAT</text><text x="940" y="350" text-anchor="end" fill="#6ef7df">FINISHED WORK</text>
+            <text x="690" y="380">SPECIMENS</text><text x="940" y="380" text-anchor="end" fill="#6ef7df">03</text>
+            <text x="690" y="410">SIGNAL</text><text x="940" y="410" text-anchor="end" fill="#ff9a3c">STRONG</text>
+          </g>
+          <g class="hud-rows">
+            <rect x="690" y="440" width="250" height="10" class="hud-track" /><rect x="690" y="440" width="210" height="10" class="hud-bar" fill="#6ef7df" style="--d: .2s" />
+            <rect x="690" y="462" width="250" height="10" class="hud-track" /><rect x="690" y="462" width="140" height="10" class="hud-bar" fill="#ff9a3c" style="--d: .3s" />
+          </g>
+          <text x="690" y="525" class="hud-small">ENTERING THE REEF ▸</text>
+        </svg>
+      </div>
+    </div>
+  </div>
 
   <script>
     (() => {
@@ -998,14 +1116,43 @@
         hudCards.forEach((c) => c.classList.toggle("is-selected", c.dataset.choice === key));
         statusText.textContent = LABELS[key];
         if (portal.onChange) portal.onChange(key);
-        if (go) location.href = document.querySelector(`.hud-card[data-choice="${key}"]`).href;
+        if (go) travel(key);
       }
+
+      // Leave the crossroads with a transition, then open the page. The page picks up the
+      // second half of the effect from sessionStorage("arrive"): see home.html and projects/.
+      const TRAVEL_MS = { surface: 1150, reef: 1650, abyss: 850 };
+      let travelling = false;
+      function travel(key) {
+        const href = document.querySelector(`.hud-card[data-choice="${key}"]`).href;
+        if (travelling) return;
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return void (location.href = href);
+        travelling = true;
+        history.replaceState(null, "", location.pathname + "#crossroads"); // Back returns here without the intro
+        try { sessionStorage.setItem("arrive", key); } catch (e) {}
+        document.querySelector(".travel-" + key).classList.add("is-on");
+        if (key === "surface" && window.riseBubbles) window.riseBubbles({ spawnMs: 1000, totalMs: 1700, rate: 140 });
+        setTimeout(() => (portal.paused = true), TRAVEL_MS[key] - 250); // the screen is covered: stop drawing 3D
+        setTimeout(() => (location.href = href), TRAVEL_MS[key]);
+      }
+      // coming back with the Back button restores this page as it was left: undo the transition
+      addEventListener("pageshow", (e) => {
+        if (!e.persisted) return;
+        travelling = false;
+        portal.paused = false;
+        document.querySelectorAll(".travel").forEach((t) => t.classList.remove("is-on"));
+      });
       portal.selectChoice = selectChoice;
       portal.openResume = () => window.open("assets/resume.pdf", "_blank", "noopener");
 
       hudCards.forEach((card) => {
         card.addEventListener("mouseenter", () => selectChoice(card.dataset.choice));
         card.addEventListener("focus", () => selectChoice(card.dataset.choice));
+        card.addEventListener("click", (e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // new tab or window: no transition
+          e.preventDefault();
+          selectChoice(card.dataset.choice, true);
+        });
       });
 
       window.addEventListener("keydown", (e) => {

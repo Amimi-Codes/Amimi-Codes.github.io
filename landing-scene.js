@@ -714,5 +714,5 @@ frame(MOTION ? 6 : 14); // first frame: uploads textures and sets up the effects
 portal.resolveScene();
 canvas.classList.add('is-ready');
 await portal.revealed;
-if (MOTION) renderer.setAnimationLoop(() => frame(clock.getElapsedTime() + 6));
+if (MOTION) renderer.setAnimationLoop(() => { if (!portal.paused) frame(clock.getElapsedTime() + 6); });
 

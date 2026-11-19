@@ -68,6 +68,8 @@
         text-align: center;
       }
       .intro:focus-visible { outline-offset: -12px; }
+      .intro > span { animation: intro-in 0.9s 0.2s both; } /* out of the black the crossroads faded to */
+      @keyframes intro-in { from { opacity: 0; } }
       .intro-line {
         display: flex;
         align-items: center;
