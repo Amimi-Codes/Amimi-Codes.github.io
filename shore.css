@@ -120,39 +120,51 @@
   background: url("assets/shore/parchment.webp") center / 100% 100% no-repeat;
   color: var(--ink);
 }
-/* the rolled ends: cylinders of the same paper, lit from the upper left */
+/* the side edges: the sheet's own paper curling over (images), level with its top edge,
+   the curl reaching a little past the bottom */
 .scroll-roll {
   position: relative;
   z-index: 1;
   flex: none;
-  width: 34px;
-  margin: 6px 0 -16px; /* flush with the paper's top edge, curling a little past its bottom */
-  border-radius: 3px 3px 17px 17px / 3px 3px 12px 12px;
-  background:
-    linear-gradient(90deg, rgba(60, 34, 12, 0.85) 0%, rgba(120, 82, 44, 0.35) 14%, rgba(255, 240, 205, 0.45) 38%, rgba(255, 240, 205, 0.1) 55%, rgba(90, 58, 26, 0.45) 82%, rgba(45, 26, 8, 0.9) 100%),
-    url("assets/shore/parchment-roll.webp") center / 100% 100%;
+  width: 40px;
+  margin: 8px 0 -12px;
+  background: url("assets/shore/scroll-edge-l.webp") center / 100% 100% no-repeat;
   transform-origin: 50% 50%;
 }
-.scroll-roll::after { /* the curled end of the roll, showing its spiral */
-  content: "";
+.scroll-roll-r { background-image: url("assets/shore/scroll-edge-r.webp"); }
+/* once rolled up, the two curls become one tied scroll (images 3-5) */
+.scroll-rolled {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 22px;
-  border-radius: 50%;
-  background:
-    radial-gradient(ellipse at 50% 50%, #4a2c12 0 14%, #b48c58 16% 28%, #6e4a24 30% 36%, #c9a670 38% 52%, #7a5228 54% 60%, #d8b884 62% 76%, #8a6334 78%);
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  height: 92%;
+  width: auto;
+  translate: -42% -50%; /* the knot's loose ends stick out on the right */
+  opacity: 0;
+  pointer-events: none;
 }
-.scroll-roll::after { bottom: -6px; filter: brightness(0.75); }
-.scroll-roll::before { /* the cut top edge of the roll */
-  content: "";
+/* the confirmation, handwritten on a crumpled note where the scroll was */
+.scroll-spot { position: relative; }
+.drift-note {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #5a3a18, #d9bb84 40%, #8a6334);
+  left: 50%;
+  top: 46%;
+  width: min(360px, 86%);
+  aspect-ratio: 460 / 520;
+  display: grid;
+  place-items: center;
+  padding: 18% 14% 16% 20%;
+  background: url("assets/shore/crumpled-note.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.5));
+  translate: -50% -50%;
+  rotate: -4deg;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
+.drift-note p { margin: 0; font: 600 clamp(1.5rem, 2.6vw, 1.9rem)/1.32 Caveat, cursive; color: #1f2a52; transform: rotate(-1.5deg); }
+.drift-note.is-shown { visibility: visible; }
 /* writing on the scroll: the cursor becomes a quill (its nib is the hotspot) */
 .scroll, .scroll input, .scroll textarea, .scroll label { cursor: url("assets/shore/quill-cursor.png") 2 46, text; }
 
@@ -227,6 +239,7 @@
 .scroll-send:disabled { opacity: 0.75; cursor: wait; transform: none; filter: none; }
 .scroll-status { min-height: 1.5em; margin: 1.6rem 0 0; text-align: center; font-weight: 700; color: var(--mint); text-shadow: 0 1px 8px #000; }
 .scroll-status.is-error { color: #ffb4a8; }
+.scroll-status.is-quiet { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .scroll-status a { color: inherit; }
 
 .shore-page .footer { position: relative; z-index: 1; color: #5f8792; background: #04121c; box-shadow: 0 0 0 100vmax #04121c; clip-path: inset(0 -100vmax); } /* full-width, over the fixed scene */

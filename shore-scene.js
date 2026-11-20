@@ -185,10 +185,20 @@ const note = new THREE.Group();
   mouth.position.set(0, 2.06, 0);
   bottle.add(mouth);
   // the rolled message that goes inside when a visitor sends one (hidden until then)
-  note.add(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.82, 20), dissolvable(new THREE.MeshStandardMaterial({ color: 0xe2c98f, roughness: 0.85 }))),
-    new THREE.Mesh(new THREE.CylinderGeometry(0.119, 0.119, 0.07, 20), dissolvable(new THREE.MeshStandardMaterial({ color: 0x9a2f29, roughness: 0.7 })))
-  );
+  // the same stained, rolled parchment as the page's rolled scroll: spiral ends, twine tied round
+  const tex = (url) => { const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const paperSide = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-body.webp'), roughness: 0.9 }));
+  const paperEnd = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-end.webp'), roughness: 0.95 }));
+  const twine = dissolvable(new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 1 }));
+  note.add(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.112, 0.82, 24), [paperSide, paperEnd, paperEnd]));
+  [-0.02, 0.05].forEach((y) => {
+    const loop = new THREE.Mesh(new THREE.TorusGeometry(0.119, 0.011, 6, 28), twine);
+    loop.rotation.x = Math.PI / 2; loop.position.y = y;
+    note.add(loop);
+  });
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), twine);
+  knot.position.set(0.12, 0.015, 0);
+  note.add(knot);
   note.visible = false;
   bottle.add(note);
   bottle.position.set(-0.34, seabed(-0.34, 0.1) - 0.17, 0.1);
