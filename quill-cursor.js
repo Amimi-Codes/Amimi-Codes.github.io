@@ -368,31 +368,56 @@
   }
 
   // ---- the cursor: the quill and its studio shadow, nib down at the bottom left ----
-  const SIZE = 120;                       // cursor image size in CSS pixels
+  // Browsers won't show cursor images over 128px, so at this size the quill is an image that
+  // follows the pointer (the system cursor is hidden over the scroll). The 120px version is the
+  // ordinary cursor wherever that can't run (touch screens get no cursor at all).
   const ANGLE = (-52 * Math.PI) / 180;    // writing angle
-  const SCALE = 0.17;                     // the quill is ~772 units long
-  const TIP = { x: 5, y: SIZE - 6 };      // where the nib tip lands: the cursor's hotspot
-  try {
-    const dpr = 1; // cursor images are drawn at CSS pixels
+  function render(size, scale, dpr) {
+    const tip = { x: Math.round(size * 0.04), y: Math.round(size * 0.95) }; // the nib tip: the hotspot
     const cv = document.createElement('canvas');
-    cv.width = cv.height = SIZE * dpr;
+    cv.width = cv.height = size * dpr;
     const c = cv.getContext('2d');
-    if (!c || !c.roundRect) return;
     c.scale(dpr, dpr);
-    c.translate(TIP.x, TIP.y);
+    c.translate(tip.x, tip.y);
     c.rotate(ANGLE);
-    c.scale(SCALE, SCALE);
+    c.scale(scale, scale);
     // Soft contact & ambient studio shadow
     c.save();
     c.translate(16, 28);
-    c.filter = `blur(${(14 * SCALE).toFixed(1)}px)`;
+    c.filter = `blur(${(14 * scale).toFixed(1)}px)`;
     c.globalAlpha = 0.24;
     drawQuillPen(c, 0.05);
     c.restore();
     // the quill
     drawQuillPen(c, 0.75);
-    const url = cv.toDataURL('image/png');
-    document.documentElement.style.setProperty('--quill-cursor', `url("${url}") ${TIP.x} ${TIP.y}, text`);
+    return { url: cv.toDataURL('image/png'), tip };
+  }
+  try {
+    if (!document.createElement('canvas').getContext('2d').roundRect) return;
+    const small = render(120, 0.17, 1);
+    document.documentElement.style.setProperty('--quill-cursor', `url("${small.url}") ${small.tip.x} ${small.tip.y}, text`);
+
+    // twice the size: 240px, drawn at 2x so it stays sharp
+    if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const SIZE = 240;
+    const big = render(SIZE, 0.34, 2);
+    const img = new Image();
+    img.src = big.url;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.style.cssText = `position:fixed;left:0;top:0;width:${SIZE}px;height:${SIZE}px;z-index:1000;pointer-events:none;display:none;will-change:transform`;
+    document.body.append(img);
+    document.documentElement.classList.add('has-quill');
+    let x = 0, y = 0, queued = false;
+    const place = () => { queued = false; img.style.transform = `translate(${x - big.tip.x}px, ${y - big.tip.y}px)`; };
+    addEventListener('pointermove', (e) => {
+      // over the scroll's paper (not its wax seal, not while it rolls away)
+      const over = e.pointerType === 'mouse' && e.target.closest && e.target.closest('.scroll') && !e.target.closest('.scroll-send') && !e.target.closest('[inert]');
+      img.style.display = over ? 'block' : 'none';
+      x = e.clientX; y = e.clientY;
+      if (over && !queued) { queued = true; requestAnimationFrame(place); }
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => (img.style.display = 'none'));
   } catch (e) {
     /* keep the PNG fallback */
   }
