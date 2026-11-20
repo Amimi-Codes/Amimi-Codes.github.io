@@ -164,6 +164,66 @@ function dissolvable(mat) {
   return mat;
 }
 
+/* ---------- the closed scroll (the message), as designed for the contact page ---------- */
+function weatheredPaper(w, h, seed) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.fillStyle = '#dcc293'; g.fillRect(0, 0, w, h);
+  let s = seed; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 90; i++) { // tea stains and lighter worn patches
+    const x = r() * w, y = r() * h, rad = 30 + r() * 170;
+    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, r() > 0.35 ? `rgba(140,96,50,${0.12 + r() * 0.2})` : `rgba(240,222,180,${0.12 + r() * 0.15})`);
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 40; i++) { // foxing: small dark age spots
+    g.fillStyle = `rgba(110,70,30,${0.15 + r() * 0.25})`;
+    g.beginPath(); g.arc(r() * w, r() * h, 2 + r() * 7, 0, 7); g.fill();
+  }
+  const edge = g.createLinearGradient(0, 0, 0, h); // darker, aged towards the ends
+  edge.addColorStop(0, 'rgba(110,70,32,.45)'); edge.addColorStop(0.12, 'rgba(110,70,32,0)'); edge.addColorStop(0.88, 'rgba(110,70,32,0)'); edge.addColorStop(1, 'rgba(110,70,32,.45)');
+  g.fillStyle = edge; g.fillRect(0, 0, w, h);
+  const img = g.getImageData(0, 0, w, h); // fibre grain
+  for (let i = 0; i < img.data.length; i += 4) { const n = (r() - 0.5) * 18; img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n * 0.8; }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+function spiralEnd() {
+  const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
+  g.fillStyle = '#cfb281'; g.fillRect(0, 0, N, N);
+  g.strokeStyle = 'rgba(80,50,22,.75)'; g.lineWidth = 2;
+  g.beginPath();
+  for (let a = 0; a < Math.PI * 2 * 6.5; a += 0.02) { const rr = 17 + a * 2.75; const x = N / 2 + Math.cos(a) * rr, y = N / 2 + Math.sin(a) * rr; a ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.stroke();
+  const gr = g.createRadialGradient(N / 2, N / 2, 0, N / 2, N / 2, N / 2); gr.addColorStop(0, 'rgba(60,40,20,.65)'); gr.addColorStop(0.14, 'rgba(60,40,20,.2)'); gr.addColorStop(0.15, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(70,50,25,.25)');
+  g.fillStyle = gr; g.fillRect(0, 0, N, N);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+function closedScroll() {
+  const grp = new THREE.Group();
+  const paper = dissolvable(new THREE.MeshStandardMaterial({ map: weatheredPaper(512, 512, 3), roughness: 0.92, side: THREE.DoubleSide }));
+  const ends = dissolvable(new THREE.MeshStandardMaterial({ map: spiralEnd(), roughness: 0.95 }));
+  const cord = dissolvable(new THREE.MeshStandardMaterial({ color: 0x6e5a4e, roughness: 1 }));
+  const L = 2.2, pts = [];
+  for (let i = 0; i <= 40; i++) { const t = i / 40; pts.push(new THREE.Vector2(0.2 + 0.07 * Math.pow(Math.abs(t - 0.5) * 2, 1.6), (t - 0.5) * L)); }
+  grp.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 40), paper));
+  for (const end of [-1, 1]) {
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.262, 40), ends);
+    face.rotation.x = end * -Math.PI / 2; face.position.y = end * (L / 2 - 0.035); grp.add(face);
+    const lip = new THREE.Mesh(new THREE.CylinderGeometry(0.272, 0.27, 0.07, 40, 1, true), paper);
+    lip.position.y = end * L / 2; grp.add(lip);
+  }
+  for (const dy of [-0.025, 0.025]) {
+    const loop = new THREE.Mesh(new THREE.TorusGeometry(0.212, 0.016, 8, 40), cord);
+    loop.rotation.x = Math.PI / 2; loop.position.y = dy; grp.add(loop);
+  }
+  grp.scale.setScalar(0.9 / L); // 0.9 units long: contact.html sizes the page's closed scroll to this
+  return grp;
+}
+
 /* ---------- the empty bottle and its cork ---------- */
 const bottle = new THREE.Group();
 const mouth = new THREE.Object3D();
@@ -184,19 +244,11 @@ const note = new THREE.Group();
   bottle.add(mesh);
   mouth.position.set(0, 2.06, 0);
   bottle.add(mouth);
-  // the rolled message that goes inside when a visitor sends one (hidden until then)
-  // the same stained, rolled parchment as the page's rolled scroll: spiral ends, twine tied round
-  // texture paths are relative to this file, so they load from any page
-  const tex = (url) => { const t = new THREE.TextureLoader().load(new URL(url, import.meta.url).href); t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const paperSide = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-body.webp'), roughness: 0.9 }));
-  const paperEnd = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-end.webp'), roughness: 0.95 }));
-  const twine = dissolvable(new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 1 }));
-  note.add(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.112, 0.9, 24), [paperSide, paperEnd, paperEnd])); // contact.html sizes the page's scroll to this
-  [-0.02, 0.05].forEach((y) => {
-    const loop = new THREE.Mesh(new THREE.TorusGeometry(0.119, 0.011, 6, 28), twine);
-    loop.rotation.x = Math.PI / 2; loop.position.y = y;
-    note.add(loop);
-  });
+  // the rolled message that goes inside when a visitor sends one (hidden until then): the closed
+  // scroll from the contact page's design (assets/shore/scroll-closed.webp is a render of this same
+  // shape and paper), a waisted tube with spiral ends and a cord, scaled to 0.9 units long
+  note.add(closedScroll());
+  note.rotation.y = Math.PI; // the paper texture's wrap seam faces away
   note.visible = false;
   bottle.add(note);
   bottle.position.set(-0.34, seabed(-0.34, 0.1) - 0.17, 0.1);

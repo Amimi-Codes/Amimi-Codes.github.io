@@ -12,11 +12,11 @@
     </script>
     <link rel="stylesheet" href="styles.css?v=48" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=12" />
+    <link rel="stylesheet" href="shore.css?v=13" />
     <script src="script.js?v=47" defer></script>
     <script src="quill-cursor.js?v=2" defer></script>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
-    <script type="module" src="shore-scene.js?v=7"></script>
+    <script type="module" src="shore-scene.js?v=8"></script>
   </head>
   <body class="shore-page">
     <header class="site-nav">
@@ -69,7 +69,7 @@
               <button type="submit" class="scroll-send" aria-label="Send: seal it in a bottle">Send</button>
             </form>
             <span class="scroll-roll scroll-roll-r" aria-hidden="true"></span>
-            <img class="scroll-rolled" src="assets/shore/scroll-rolled.webp" alt="" width="190" height="600" />
+            <img class="scroll-rolled" src="assets/shore/scroll-closed.webp" alt="" width="272" height="1100" />
           </div>
           <div class="drift-note" aria-hidden="true"><p>Your bottle is drifting my way. I'll write back when it reaches my shore!</p></div>
           <!-- melts the crumpled note away (animated by the script) -->
@@ -123,20 +123,22 @@
       // The note that goes into the bottle (shore-scene.js) is 0.9 x 0.23 world units. The scroll
       // shrinks while it rolls up so that, closed, it is exactly that size where the bottle will be,
       // and then moves into the neck together with the 3D note.
-      const NOTE_LEN = 0.9, NOTE_TOP = 0.44, NOTE_TRAVEL = 1.88; // length; start above the mouth; slide down the bottle
-      let closed = { s: 1, k: 1, half: 0 };
+      // NOTE_LEN: the closed-scroll image's height in bottle units (the 0.9-long note, drawn tipped so its end shows)
+      const NOTE_LEN = 0.927, NOTE_TOP = 0.44, NOTE_TRAVEL = 1.88; // start above the mouth; slide down the bottle
+      let closed = { s: 1, k: 1, half: 0, move: 0 };
       // the sheet winds onto its two curls, which meet in the middle and become one rolled scroll
       async function rollUp(unit) {
         const H = scroll.offsetHeight, rw = rollL.offsetWidth;
-        const half = sheet.offsetWidth / 2 - rw / 2;
+        const half = sheet.offsetWidth / 2;  // the sheet is wound away from both sides to nothing
         const s = (NOTE_LEN * unit) / H;   // closed = the bottle note's size
-        const k = Math.max(1, (H * 0.25) / rw - 1); // the curls widen to the rolled tube's width (it is H/4 wide)
-        closed = { s, k, half };
+        const k = Math.max(1, (H * 0.247) / (2 * rw)); // the two rolls widen to the closed scroll's width (it is 0.247 x its height)
+        const move = scroll.offsetWidth / 2 - rw / 2 - (rw * k) / 2; // the rolls meet side by side in the middle
+        closed = { s, k, half, move };
         await Promise.all([
           play(scroll, [{ transform: "none" }, { transform: `scale(${s})` }], 1100),
           play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${half}px 0 ${half}px)` }], 900),
-          play(rollL, [{ transform: "none" }, { transform: `translateX(${half - rw / 2}px) scaleX(${k})` }], 900),
-          play(rollR, [{ transform: "none" }, { transform: `translateX(${-half + rw / 2}px) scaleX(${k})` }], 900),
+          play(rollL, [{ transform: "none" }, { transform: `translateX(${move}px) scaleX(${k})` }], 900),
+          play(rollR, [{ transform: "none" }, { transform: `translateX(${-move}px) scaleX(${k})` }], 900),
         ]);
         await Promise.all([
           play(rolled, [{ opacity: 0 }, { opacity: 1 }], 300, "ease-out"),
@@ -147,13 +149,13 @@
       // a fresh scroll: grows from the closed size and unrolls
       function unroll() {
         scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-        const { s, k, half } = closed, rw = rollL.offsetWidth;
+        const { s, k, half, move } = closed;
         return Promise.all([
           play(scroll, [{ opacity: 0, transform: `scale(${s})` }, { opacity: 1, offset: 0.25 }, { opacity: 1, transform: "none" }], 1100),
           play(rolled, [{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], 600),
           play(sheet, [{ clipPath: `inset(0 ${half}px 0 ${half}px)` }, { clipPath: "inset(0 0 0 0)" }], 1100),
-          play(rollL, [{ transform: `translateX(${half - rw / 2}px) scaleX(${k})` }, { transform: "none" }], 1100),
-          play(rollR, [{ transform: `translateX(${-half + rw / 2}px) scaleX(${k})` }, { transform: "none" }], 1100),
+          play(rollL, [{ transform: `translateX(${move}px) scaleX(${k})` }, { transform: "none" }], 1100),
+          play(rollR, [{ transform: `translateX(${-move}px) scaleX(${k})` }, { transform: "none" }], 1100),
         ]).then(() => scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel()));
       }
 

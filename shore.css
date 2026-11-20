@@ -115,26 +115,28 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  padding: clamp(2.6rem, 6vh, 3.4rem) calc(6.4% + clamp(1.2rem, 2.4vw, 1.8rem)) clamp(2.4rem, 5vh, 3rem);
+  margin: 0 6%; /* room for the rolls at the sides */
+  padding: clamp(2.6rem, 6vh, 3.4rem) clamp(1.6rem, 3.2vw, 2.4rem) clamp(2.4rem, 5vh, 3rem);
   background: url("assets/shore/parchment.webp") center / 100% 100% no-repeat;
   color: var(--ink);
 }
-/* the side edges: the sheet's own paper curling over (images), level with its top edge,
-   the curl reaching a little past the bottom */
+/* The side rolls and the closed scroll are renders of the 3D scroll the bottle's note is built
+   from (shore-scene.js), so the page and the bottle show the same paper. Each roll is as tall as
+   the paper left between the torn edges (a touch less: it sits in front), centred on it, and
+   stands mostly beyond the sheet's edge, as in the 3D model. */
 .scroll-roll {
-  /* cut from the sheet's own outer strip (same pixels, same scale: 6.4% of its width), so the
-     colour and the aged border carry straight on; only the curl reaches 3.3% past the bottom */
   position: absolute;
   z-index: 1;
-  top: 0;
-  bottom: 0;
+  top: 3.54%;
+  bottom: 3.78%;
   left: 0;
-  width: 6.4%;
-  background: url("assets/shore/scroll-edge-l.webp") center / 100% 100% no-repeat;
+  width: 7.74%;
+  background: url("assets/shore/scroll-roll.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(5px 4px 5px rgba(40, 22, 8, 0.45)); /* lit from the upper left, onto the sheet */
   transform-origin: 50% 50%;
 }
-.scroll-roll-r { left: auto; right: 0; background-image: url("assets/shore/scroll-edge-r.webp"); }
-/* once rolled up, the two curls become one tied scroll (images 3-5) */
+.scroll-roll-r { left: auto; right: 0; }
+/* once rolled up, the two rolls become one closed, tied scroll */
 .scroll-rolled {
   position: absolute;
   z-index: 2;
