@@ -5,8 +5,8 @@ import * as THREE from 'three';
 
 const canvas = document.getElementById('shore-scene');
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-// data-mode="seabed" (the projects page): just the seabed behind the page, no bottle, at half
-// speed, a wider view, and drawn every other frame at standard resolution since it sits under a tint
+// data-mode="seabed" (the projects page): the same seabed without the bottle, at half speed,
+// drawn every other frame at standard resolution since it sits under a dark tint
 const SEABED = canvas.dataset.mode === 'seabed';
 const SPEED = SEABED ? 0.5 : 1;
 
@@ -304,9 +304,9 @@ function resize() {
   viewW = w; viewH = h;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  camera.fov = SEABED ? (portrait ? 62 : 52) : portrait ? 50 : 40;
-  if (SEABED) { camBase.set(0.3, portrait ? 4.4 : 3.9, portrait ? 14 : 12.5); look.set(0.3, portrait ? 3.2 : 2.6, 0); }
-  else { camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5); look.set(0.3, portrait ? 3.0 : 2.5, 0); }
+  camera.fov = portrait ? 50 : 40; // the same view on the contact page and behind the projects page
+  camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5);
+  look.set(0.3, portrait ? 3.0 : 2.5, 0);
   camera.clearViewOffset();
   camera.updateProjectionMatrix();
   // shift the view so the bottle lands in the gap between the two columns
@@ -334,7 +334,10 @@ function runTweens(now) {
   }
 }
 let busy = SEABED; // the bottle is in the message sequence (or absent): no idle rocking, no bubbles from its mouth
-if (SEABED) bottle.visible = cork.visible = false;
+if (SEABED) {
+  bottle.visible = cork.visible = false;
+  bubbleData.forEach((b) => { if (b.fromMouth) b.y = 99; }); // no bottle, so no bubbles from its mouth, from the very start
+}
 
 // a point on screen, at a given distance in front of the camera, in world space
 function screenToWorld(x, y, dist, out) {
