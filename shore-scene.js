@@ -190,15 +190,12 @@ const note = new THREE.Group();
   const paperSide = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-body.webp'), roughness: 0.9 }));
   const paperEnd = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-end.webp'), roughness: 0.95 }));
   const twine = dissolvable(new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 1 }));
-  note.add(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.112, 0.82, 24), [paperSide, paperEnd, paperEnd]));
+  note.add(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.112, 0.9, 24), [paperSide, paperEnd, paperEnd])); // contact.html sizes the page's scroll to this
   [-0.02, 0.05].forEach((y) => {
     const loop = new THREE.Mesh(new THREE.TorusGeometry(0.119, 0.011, 6, 28), twine);
     loop.rotation.x = Math.PI / 2; loop.position.y = y;
     note.add(loop);
   });
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), twine);
-  knot.position.set(0.12, 0.015, 0);
-  note.add(knot);
   note.visible = false;
   bottle.add(note);
   bottle.position.set(-0.34, seabed(-0.34, 0.1) - 0.17, 0.1);
@@ -363,17 +360,23 @@ window.__shore = {
     target.sub(tmp.set(0, 1.05, 0).applyQuaternion(upright)); // the bottle's middle on that point
     await moveObject(bottle, target, upright, 1100, 0.6);
   },
-  // where the mouth is on screen, the bottle's tilt there, and the neck's width in pixels
+  // pixels per world unit where the bottle will stand (so the page can size the closed scroll first)
+  unitAt() {
+    const dist = camera.position.distanceTo(bottle.position) * 0.72;
+    return viewH / (2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+  },
+  // where the mouth is on screen, the bottle's tilt there, the neck's width and pixels per unit there
   mouth() {
     const m = toScreen(mouth.getWorldPosition(tmp));
     const b = toScreen(bottle.localToWorld(tmp.set(0, 1.0, 0)));
     const l = toScreen(bottle.localToWorld(tmp.set(-0.17, 1.8, 0))), r = toScreen(bottle.localToWorld(tmp.set(0.17, 1.8, 0)));
-    return { x: m.x, y: m.y, angle: Math.atan2(m.x - b.x, b.y - m.y), neck: Math.hypot(l.x - r.x, l.y - r.y) };
+    return { x: m.x, y: m.y, angle: Math.atan2(m.x - b.x, b.y - m.y), neck: Math.hypot(l.x - r.x, l.y - r.y), unit: Math.hypot(m.x - b.x, m.y - b.y) / 1.06 };
   },
   // the rolled message slides down the neck into the bottle
-  async insertNote() {
+  async insertNote(ms = 900) {
     note.visible = true;
-    await tween(800, (k) => { note.position.set(0, 2.0 - 1.45 * k, 0); note.scale.setScalar(0.4 + 0.6 * k); });
+    note.scale.setScalar(1);
+    await tween(ms, (k) => note.position.set(0, 2.5 - 1.88 * k, 0)); // from just above the mouth (as the page's scroll) down inside
   },
   // the cork leaves the sand and seals the mouth
   async cork() {
