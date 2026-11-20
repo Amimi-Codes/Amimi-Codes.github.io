@@ -10,11 +10,33 @@
   --reef-amber: #ffbe4f;
   --reef-text: #e6f7fa;
   --reef-muted: #98bcc7;
-  background:
-    linear-gradient(#2fd3c50a 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(90deg, #2fd3c50a 1px, transparent 1px) 0 0 / 32px 32px,
-    var(--reef-bg);
+  background: var(--reef-bg);
   color: var(--reef-text);
+}
+/* the seabed from the contact page (a still of its 3D scene) behind everything, darkened,
+   with the sonar grid over it; fixed in place while the page scrolls */
+.reef-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(#2fd3c50c 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, #2fd3c50c 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(rgba(2, 10, 16, 0.62), rgba(2, 10, 16, 0.78)),
+    url("assets/reef/seabed-desk.webp") center bottom / cover no-repeat,
+    var(--reef-bg);
+}
+@media (max-aspect-ratio: 4/5) {
+  .reef-page::before {
+    background:
+      linear-gradient(#2fd3c50c 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, #2fd3c50c 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(rgba(2, 10, 16, 0.62), rgba(2, 10, 16, 0.78)),
+      url("assets/reef/seabed-mob.webp") center bottom / cover no-repeat,
+      var(--reef-bg);
+  }
 }
 .reef-page :focus-visible {
   outline: 2px solid var(--reef-amber);
@@ -33,6 +55,7 @@
   margin: 2.5rem auto 0;
   padding: 0 0 4rem;
   border: 1px solid var(--reef-line);
+  background: rgba(3, 13, 21, 0.72); /* the guide covers the water more, so the cards read clearly */
 }
 .reef-frame::before,
 .reef-frame::after {
