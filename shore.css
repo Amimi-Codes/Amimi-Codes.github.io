@@ -126,14 +126,14 @@
   z-index: 1;
   flex: none;
   width: 34px;
-  margin: -16px 0;
-  border-radius: 17px / 12px;
+  margin: 6px 0 -16px; /* flush with the paper's top edge, curling a little past its bottom */
+  border-radius: 3px 3px 17px 17px / 3px 3px 12px 12px;
   background:
     linear-gradient(90deg, rgba(60, 34, 12, 0.85) 0%, rgba(120, 82, 44, 0.35) 14%, rgba(255, 240, 205, 0.45) 38%, rgba(255, 240, 205, 0.1) 55%, rgba(90, 58, 26, 0.45) 82%, rgba(45, 26, 8, 0.9) 100%),
     url("assets/shore/parchment-roll.webp") center / 100% 100%;
   transform-origin: 50% 50%;
 }
-.scroll-roll::before, .scroll-roll::after { /* the spiral end of the roll, top and bottom */
+.scroll-roll::after { /* the curled end of the roll, showing its spiral */
   content: "";
   position: absolute;
   left: 0;
@@ -143,8 +143,18 @@
   background:
     radial-gradient(ellipse at 50% 50%, #4a2c12 0 14%, #b48c58 16% 28%, #6e4a24 30% 36%, #c9a670 38% 52%, #7a5228 54% 60%, #d8b884 62% 76%, #8a6334 78%);
 }
-.scroll-roll::before { top: -6px; }
 .scroll-roll::after { bottom: -6px; filter: brightness(0.75); }
+.scroll-roll::before { /* the cut top edge of the roll */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #5a3a18, #d9bb84 40%, #8a6334);
+}
+/* writing on the scroll: the cursor becomes a quill (its nib is the hotspot) */
+.scroll, .scroll input, .scroll textarea, .scroll label { cursor: url("assets/shore/quill-cursor.png") 2 46, text; }
 
 .scroll-title {
   margin: 0 0 0.3rem;
@@ -184,7 +194,7 @@
 }
 .scroll-field textarea {
   min-height: 7.8rem;
-  resize: vertical;
+  resize: none; /* no grey resize handle on the parchment */
   border: 0;
   background: repeating-linear-gradient(transparent 0 calc(2rem - 1.5px), rgba(58, 36, 16, 0.3) calc(2rem - 1.5px) 2rem);
   line-height: 2rem;
@@ -192,21 +202,29 @@
 .scroll-field input:focus, .scroll-field textarea:focus { outline: none; background-color: rgba(255, 248, 225, 0.35); }
 .scroll-field input:focus { border-bottom-color: #8a4b12; }
 .scroll-honey { position: absolute; left: -9999px; }
+/* the send button: a red wax seal (a lit, rendered image) with SEND pressed into it */
 .scroll-send {
-  margin-top: 0.6rem;
-  min-height: 48px;
-  padding: 0 1.5rem;
-  border: 1px solid #7a4a14;
-  border-radius: 8px;
-  background: linear-gradient(#ffcd6b, #e6a43a);
-  color: #2a1604;
-  font: 700 1rem "DM Sans", sans-serif;
-  box-shadow: 0 0 22px #ffbe4f55, inset 0 1px 0 #fff3c9;
+  display: grid;
+  place-items: center;
+  width: 116px;
+  height: 116px;
+  margin: 0.2rem -0.6rem -0.8rem auto;
+  padding: 0 0 4px 6px; /* the seal's face sits a little right of and above the image's centre */
+  border: 0;
+  border-radius: 50%;
+  background: url("assets/shore/wax-seal.webp") center / contain no-repeat;
+  color: #7e1a12;
+  font: 800 0.82rem/1 Manrope, sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 175, 155, 0.55), 0 -1px 0 rgba(50, 4, 2, 0.55); /* stamped in */
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: transform 0.25s, filter 0.25s;
 }
-.scroll-send:hover { box-shadow: 0 0 30px #ffbe4f99, inset 0 1px 0 #fff3c9; transform: translateY(-1px); }
-.scroll-send:disabled { opacity: 0.7; cursor: wait; transform: none; }
+.scroll-send:hover, .scroll-send:focus-visible { transform: rotate(-5deg) scale(1.05); filter: brightness(1.1) drop-shadow(0 0 12px rgba(255, 110, 80, 0.4)); }
+.scroll-send:focus-visible { outline-offset: -6px; }
+.scroll-send:active { transform: scale(0.95); }
+.scroll-send:disabled { opacity: 0.75; cursor: wait; transform: none; filter: none; }
 .scroll-status { min-height: 1.5em; margin: 1.6rem 0 0; text-align: center; font-weight: 700; color: var(--mint); text-shadow: 0 1px 8px #000; }
 .scroll-status.is-error { color: #ffb4a8; }
 .scroll-status a { color: inherit; }
