@@ -386,6 +386,9 @@
     /* abyss: fade to black */
     .travel-abyss { background: #000; }
     .travel-abyss.is-on { animation: travel-fade 0.8s ease-in forwards; }
+    /* the message in a bottle: the camera dives into the bottle (landing-scene.js), then deep water */
+    .travel-shore { background: #05202a; }
+    .travel-shore.is-on { animation: travel-fade 0.5s 0.65s ease-in forwards; }
     /* reef: a sci-fi panel tilts up, then the camera dives into its centre ring */
     /* kept visible (but empty) so the panel is drawn ahead of time, not on the first frame of the trip */
     .travel-reef { opacity: 1; visibility: visible; display: grid; place-items: center; overflow: hidden; background-color: rgba(4, 18, 28, 0); }
@@ -559,6 +562,7 @@
   <!-- transitions out of the crossroads (started by travel() below) -->
   <div class="travel travel-surface" aria-hidden="true"></div>
   <div class="travel travel-abyss" aria-hidden="true"></div>
+  <div class="travel travel-shore" aria-hidden="true"></div>
   <div class="travel travel-reef" aria-hidden="true">
     <div class="hud-zoom">
       <div class="hud-tilt">
@@ -881,10 +885,10 @@
 
       // Leave the crossroads with a transition, then open the page. The page picks up the
       // second half of the effect from sessionStorage("arrive"): see home.html and projects/.
-      const TRAVEL_MS = { surface: 1150, reef: 1650, abyss: 850 };
+      const TRAVEL_MS = { surface: 1150, reef: 1650, abyss: 850, shore: 1200 };
       let travelling = false;
       function travel(key) {
-        const href = document.querySelector(`.hud-card[data-choice="${key}"]`).href;
+        const href = key === "shore" ? document.querySelector(".bottle-msg").href : document.querySelector(`.hud-card[data-choice="${key}"]`).href;
         if (travelling) return;
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return void (location.href = href);
         travelling = true;
@@ -892,6 +896,7 @@
         try { sessionStorage.setItem("arrive", key); } catch (e) {}
         document.querySelector(".travel-" + key).classList.add("is-on");
         if (key === "surface" && window.riseBubbles) window.riseBubbles({ spawnMs: 1000, totalMs: 1700, rate: 140 });
+        if (key === "shore" && portal.zoomBottle) portal.zoomBottle();
         setTimeout(() => (portal.paused = true), TRAVEL_MS[key] - 250); // the screen is covered: stop drawing 3D
         setTimeout(() => (location.href = href), TRAVEL_MS[key]);
       }
@@ -900,9 +905,17 @@
         if (!e.persisted) return;
         travelling = false;
         portal.paused = false;
+        if (portal.resetZoom) portal.resetZoom();
         document.querySelectorAll(".travel").forEach((t) => t.classList.remove("is-on"));
       });
       portal.selectChoice = selectChoice;
+      portal.travel = travel;
+      // the bottle's speech bubble link (keyboard) dives in too
+      document.querySelector(".bottle-msg").addEventListener("click", (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        travel("shore");
+      });
       portal.openResume = () => window.open("assets/resume.pdf", "_blank", "noopener");
 
       hudCards.forEach((card) => {

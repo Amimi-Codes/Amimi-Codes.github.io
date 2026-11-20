@@ -633,6 +633,12 @@ let selected = 'surface', hovered = null, hoverResume = false, hoverBottle = fal
 const mobile = matchMedia('(max-width: 780px)'); // same breakpoint as the stacked cards
 const resumeLink = document.querySelector('.resume-skip'), pearlPos = new THREE.Vector3();
 const bottleLink = document.querySelector('.bottle-msg'), bottlePos = new THREE.Vector3();
+// the dive into the bottle on the way to the contact page
+let zoomStart = 0;
+const tmpUp = new THREE.Vector3(), tmpLook = new THREE.Vector3();
+const zoomFrom = new THREE.Vector3(), zoomTo = new THREE.Vector3(), zoomLook = new THREE.Vector3();
+portal.zoomBottle = () => { zoomStart = performance.now(); };
+portal.resetZoom = () => { zoomStart = 0; };
 portal.onChange = (key) => { selected = key; };
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(9, 9), look = new THREE.Vector2();
 let ptrMoved = true, pickTick = 0;
@@ -648,7 +654,7 @@ canvas.addEventListener('click', (e) => {
   pick();
   if (hovered) portal.selectChoice?.(hovered, true);
   else if (hoverResume) portal.openResume?.();
-  else if (hoverBottle) location.href = bottleLink.href;
+  else if (hoverBottle) portal.travel ? portal.travel('shore') : (location.href = bottleLink.href);
 });
 function pick() {
   ray.setFromCamera(ptr, camera);
@@ -692,6 +698,14 @@ function frame(t) {
     camBase.z
   );
   camera.lookAt(camTarget.x + camLook.x * 0.2, camTarget.y + Math.sin(t * 0.4) * 0.04, camTarget.z);
+  if (zoomStart) { // dive towards the bottle's middle, speeding up
+    const p = Math.min(1, (performance.now() - zoomStart) / 1150), k = p * p * p;
+    bottle.localToWorld(zoomLook.set(0, 0.45, 0));
+    zoomFrom.copy(camera.position);
+    zoomTo.copy(zoomLook).add(tmpUp.set(0.15, 0.25, 0.5));
+    camera.position.lerpVectors(zoomFrom, zoomTo, k);
+    camera.lookAt(tmpLook.set(camTarget.x, camTarget.y, camTarget.z).lerp(zoomLook, Math.min(1, p * 1.6)));
+  }
 
   rays.forEach((r) => { r.material.uniforms.uOpacity.value = 0.2 + 0.08 * Math.sin(t * 0.3 + r.userData.phase); });
   sign.visible = !mobile.matches;

@@ -1,7 +1,7 @@
-/* Contact page: a message in a bottle, washed up on the seabed */
+/* Contact page: a message in a bottle, on the seabed */
 .shore-page {
-  --ink: #2a1d10;
-  --parchment: #f3e2b8;
+  --ink: #3a2410;
+  --ink-soft: #6b4a2a;
   --mint: #6ef7df;
   --amber: #ffbe4f;
   background: #04121c;
@@ -38,40 +38,48 @@
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(2, 12, 18, 0.7) 0%, rgba(2, 12, 18, 0.25) 45%, transparent 70%),
+    linear-gradient(90deg, rgba(2, 12, 18, 0.72) 0%, rgba(2, 12, 18, 0.25) 38%, transparent 55%),
     radial-gradient(circle at 50% 35%, transparent 0%, rgba(2, 12, 18, 0.55) 100%),
     linear-gradient(to bottom, rgba(3, 18, 25, 0.45) 0%, transparent 25%, transparent 78%, rgba(2, 10, 14, 0.6) 100%);
 }
+/* arriving from the crossroads' bottle: the deep water clears as the camera pulls back */
+.arrive-shore body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background: #05202a;
+  animation: shore-clear 0.9s 0.1s ease-out forwards;
+}
+@keyframes shore-clear { to { opacity: 0; visibility: hidden; } }
 
+/* intro | the bottle (in the 3D scene) | the scroll */
 .shore-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
-  gap: clamp(2rem, 6vw, 6rem);
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.55fr) minmax(0, 560px);
+  grid-template-areas: "intro . scroll";
   align-items: center;
-  padding: clamp(3rem, 9vh, 6.5rem) 0 clamp(6rem, 16vh, 10rem);
+  padding: clamp(2.5rem, 7vh, 5rem) 0 clamp(5rem, 14vh, 8rem);
 }
+.shore-intro { grid-area: intro; }
+.scroll-spot { grid-area: scroll; }
 
-.shore-kicker {
-  margin: 0 0 1.2rem;
-  font: 500 0.95rem/1 "Pixelify Sans", monospace;
-  letter-spacing: 0.08em;
-  color: var(--amber);
-}
 .shore-intro h1 {
   margin: 0;
-  font: 700 clamp(3rem, 7.5vw, 6.6rem)/0.98 Manrope, sans-serif;
+  font: 700 clamp(3rem, 6.4vw, 6rem)/0.98 Manrope, sans-serif;
   letter-spacing: -0.06em;
   color: #f2fffb;
 }
 .shore-intro h1 em { font-style: normal; color: var(--mint); text-shadow: 0 0 28px #6ef7df55; }
-.shore-lede { max-width: 33rem; margin: 1.6rem 0 2.4rem; font-size: 1.15rem; line-height: 1.7; color: #c3dde3; }
+.shore-lede { max-width: 28rem; margin: 1.6rem 0 2.2rem; font-size: 1.2rem; line-height: 1.65; color: #c3dde3; }
 
 /* the resume, as the pearl from the crossroads */
 .pearl-link {
   display: inline-flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 1.4rem 0.7rem 0.7rem;
+  gap: 0.9rem;
+  padding: 0.6rem 1.4rem 0.6rem 0.6rem;
   border: 1px solid #6ef7df55;
   border-radius: 999px;
   background: #03131ccc;
@@ -82,130 +90,140 @@
 }
 .pearl {
   flex: none;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff 0 12%, #e6fbff 30%, #9fdcea 70%, #5aa9bd 100%);
   box-shadow: 0 0 18px #9ff4ff99, inset -4px -6px 10px #2c7d9455;
   animation: pearl-glow 3.2s ease-in-out infinite;
 }
 @keyframes pearl-glow { 50% { box-shadow: 0 0 30px #9ff4ffcc, inset -4px -6px 10px #2c7d9455; } }
-.pearl-text small { display: block; margin-top: 0.2rem; font: 400 0.75rem "DM Sans", sans-serif; color: #98bcc7; }
 .pearl-link:hover, .pearl-link:focus-visible { border-color: var(--mint); box-shadow: 0 0 22px #6ef7df44; }
-.shore-resume { max-width: 30rem; margin: 1.4rem 0 0; font-size: 0.92rem; line-height: 1.6; color: #98bcc7; }
+.shore-socials { margin: 1.6rem 0 0; color: #98bcc7; }
+.shore-socials a { color: #e6f7fa; font-weight: 700; text-decoration-color: var(--mint); text-underline-offset: 4px; }
+.shore-socials a:hover { color: var(--mint); }
 
-/* the note from the bottle */
-.note-spot { position: relative; padding-bottom: 3rem; }
-.note {
+/* ---------- the parchment scroll ---------- */
+.scroll {
   position: relative;
-  padding: 3.2rem clamp(1.6rem, 4vw, 2.6rem) 2.2rem;
-  background:
-    radial-gradient(ellipse at 15% 10%, #fff6dc, transparent 55%),
-    radial-gradient(ellipse at 90% 95%, #e2c98f, transparent 50%),
-    var(--parchment);
-  color: var(--ink);
-  rotate: -2deg;
-  box-shadow: 0 30px 60px #00000080, inset 0 0 40px #b8955555;
-  /* softly torn top and bottom edges */
-  -webkit-mask: radial-gradient(5px 3px at 50% 0, #0000 98%, #000) 0 0 / 9px 51% repeat-x,
-    radial-gradient(5px 3px at 50% 100%, #0000 98%, #000) 0 100% / 13px 51% repeat-x;
-  mask: radial-gradient(5px 3px at 50% 0, #0000 98%, #000) 0 0 / 9px 51% repeat-x,
-    radial-gradient(5px 3px at 50% 100%, #0000 98%, #000) 0 100% / 13px 51% repeat-x;
-  animation: note-drift 6s ease-in-out infinite;
+  display: flex;
+  align-items: stretch;
+  filter: drop-shadow(0 26px 30px rgba(0, 0, 0, 0.55));
+  transform-origin: 50% 50%;
 }
-@keyframes note-drift { 50% { translate: 0 -8px; rotate: -1deg; } }
-.note-ribbon {
+.scroll-sheet {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  margin: 0 -14px; /* tucks under the rolls */
+  padding: clamp(2.6rem, 6vh, 3.4rem) clamp(2.2rem, 4vw, 3.2rem) clamp(2.4rem, 5vh, 3rem);
+  background: url("assets/shore/parchment.webp") center / 100% 100% no-repeat;
+  color: var(--ink);
+}
+/* the rolled ends: cylinders of the same paper, lit from the upper left */
+.scroll-roll {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 34px;
+  margin: -16px 0;
+  border-radius: 17px / 12px;
+  background:
+    linear-gradient(90deg, rgba(60, 34, 12, 0.85) 0%, rgba(120, 82, 44, 0.35) 14%, rgba(255, 240, 205, 0.45) 38%, rgba(255, 240, 205, 0.1) 55%, rgba(90, 58, 26, 0.45) 82%, rgba(45, 26, 8, 0.9) 100%),
+    url("assets/shore/parchment-roll.webp") center / 100% 100%;
+  transform-origin: 50% 50%;
+}
+.scroll-roll::before, .scroll-roll::after { /* the spiral end of the roll, top and bottom */
+  content: "";
   position: absolute;
-  top: 1.2rem;
   left: 0;
   right: 0;
-  height: 10px;
-  background: #c8463e;
-  box-shadow: 0 2px 0 #9a2f29;
-}
-.note-title {
-  margin: 0.4rem 0 1.4rem;
-  font: 500 1.35rem/1.2 "Pixelify Sans", monospace;
-  color: var(--ink);
-}
-.note-list { margin: 0; padding: 0; list-style: none; border-top: 2px dashed #2a1d1040; }
-.note-list a {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.3rem 1rem;
-  min-height: 64px;
-  padding: 0.9rem 0.2rem;
-  border-bottom: 2px dashed #2a1d1040;
-  color: var(--ink);
-  text-decoration: none;
-  transition: background 0.2s, padding 0.2s;
-}
-.note-list a:hover, .note-list a:focus-visible { background: #2a1d100f; padding-inline: 0.8rem; }
-.note-label { font: 500 0.95rem "Pixelify Sans", monospace; color: #7a4a24; }
-.note-value { font: 700 1.05rem Manrope, sans-serif; overflow-wrap: anywhere; }
-.note-sign { margin: 1.4rem 0 0; text-align: right; font: italic 1.05rem "DM Sans", sans-serif; color: #5a4128; }
-
-.shore-page .footer { position: relative; z-index: 1; color: #5f8792; background: #04121c; box-shadow: 0 0 0 100vmax #04121c; clip-path: inset(0 -100vmax); } /* full-width, over the fixed scene */
-
-@media (max-width: 900px) {
-  .shore-wrap { grid-template-columns: 1fr; }
-  .note-spot { max-width: 520px; }
-}
-@media (max-width: 780px) {
-  .shore-page .footer { flex-direction: column; justify-content: center; gap: 0.8rem; padding: 2rem 0; text-align: center; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pearl, .note { animation: none; }
-}
-
-/* the visitor's own letter */
-.letter-spot { position: relative; padding: 0 0 clamp(8rem, 20vh, 12rem); }
-.letter {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: clamp(1.8rem, 4vw, 3rem);
+  height: 22px;
+  border-radius: 50%;
   background:
-    repeating-linear-gradient(transparent 0 33px, #2a1d1018 33px 34px),
-    radial-gradient(ellipse at 10% 0%, #fff6dc, transparent 55%),
-    var(--parchment);
-  color: var(--ink);
-  rotate: 0.6deg;
-  box-shadow: 0 30px 60px #00000080, inset 0 0 50px #b8955555;
+    radial-gradient(ellipse at 50% 50%, #4a2c12 0 14%, #b48c58 16% 28%, #6e4a24 30% 36%, #c9a670 38% 52%, #7a5228 54% 60%, #d8b884 62% 76%, #8a6334 78%);
 }
-.letter-title { margin: 0 0 0.4rem; font: 800 clamp(1.6rem, 3vw, 2.1rem)/1.2 Manrope, sans-serif; letter-spacing: -0.03em; }
-.letter-dear { margin: 0 0 1.4rem; font: italic 1.15rem "DM Sans", sans-serif; color: #5a4128; }
-.letter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
-.letter label { display: grid; gap: 0.45rem; font: 500 0.95rem "Pixelify Sans", monospace; color: #7a4a24; }
-.letter input, .letter textarea {
+.scroll-roll::before { top: -6px; }
+.scroll-roll::after { bottom: -6px; filter: brightness(0.75); }
+
+.scroll-title {
+  margin: 0 0 0.3rem;
+  font: 800 clamp(1.45rem, 2.4vw, 1.8rem)/1.15 Manrope, sans-serif;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.scroll-to {
+  margin: 0 0 1.4rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(58, 36, 16, 0.35);
+  font: 600 1.45rem/1.2 Caveat, cursive;
+  color: var(--ink);
+}
+.scroll-to span { margin-right: 0.4rem; font: 700 0.72rem "DM Sans", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+.scroll-field {
+  display: grid;
+  gap: 0.15rem;
+  margin-bottom: 0.9rem;
+  font: 700 0.72rem "DM Sans", sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+/* what visitors write appears as handwriting in ink, on ruled lines */
+.scroll-field input, .scroll-field textarea {
   width: 100%;
-  padding: 0.8rem 0.9rem;
-  border: 2px solid #2a1d1033;
-  border-radius: 6px;
-  background: #fffaf0cc;
-  color: var(--ink);
-  font: 1rem/1.5 "DM Sans", sans-serif;
-}
-.letter textarea { resize: vertical; min-height: 9rem; }
-.letter input:focus, .letter textarea:focus { border-color: #b8742e; outline: none; box-shadow: 0 0 0 3px #ffbe4f66; }
-.letter-honey { position: absolute; left: -9999px; }
-.letter-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.4rem; margin-top: 1.4rem; }
-.letter-send {
-  min-height: 48px;
-  padding: 0 1.6rem;
+  padding: 0.15rem 0.1rem;
   border: 0;
+  border-bottom: 1.5px dashed rgba(58, 36, 16, 0.4);
+  border-radius: 0;
+  background: transparent;
+  color: #241405;
+  font: 600 1.5rem/1.35 Caveat, cursive;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.scroll-field textarea {
+  min-height: 7.8rem;
+  resize: vertical;
+  border: 0;
+  background: repeating-linear-gradient(transparent 0 calc(2rem - 1.5px), rgba(58, 36, 16, 0.3) calc(2rem - 1.5px) 2rem);
+  line-height: 2rem;
+}
+.scroll-field input:focus, .scroll-field textarea:focus { outline: none; background-color: rgba(255, 248, 225, 0.35); }
+.scroll-field input:focus { border-bottom-color: #8a4b12; }
+.scroll-honey { position: absolute; left: -9999px; }
+.scroll-send {
+  margin-top: 0.6rem;
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border: 1px solid #7a4a14;
   border-radius: 8px;
-  background: var(--amber);
-  color: #1a1205;
+  background: linear-gradient(#ffcd6b, #e6a43a);
+  color: #2a1604;
   font: 700 1rem "DM Sans", sans-serif;
-  box-shadow: 0 0 22px #ffbe4f66;
+  box-shadow: 0 0 22px #ffbe4f55, inset 0 1px 0 #fff3c9;
   cursor: pointer;
   transition: box-shadow 0.2s, transform 0.2s;
 }
-.letter-send:hover { box-shadow: 0 0 32px #ffbe4faa; transform: translateY(-1px); }
-.letter-send:disabled { opacity: 0.6; cursor: wait; }
-.letter-status { margin: 0; font-weight: 700; color: #2f6b4f; }
-.letter-status.is-error { color: #9a2f29; }
-.letter-status a { color: inherit; }
-@media (max-width: 640px) { .letter-row { grid-template-columns: 1fr; } }
+.scroll-send:hover { box-shadow: 0 0 30px #ffbe4f99, inset 0 1px 0 #fff3c9; transform: translateY(-1px); }
+.scroll-send:disabled { opacity: 0.7; cursor: wait; transform: none; }
+.scroll-status { min-height: 1.5em; margin: 1.6rem 0 0; text-align: center; font-weight: 700; color: var(--mint); text-shadow: 0 1px 8px #000; }
+.scroll-status.is-error { color: #ffb4a8; }
+.scroll-status a { color: inherit; }
+
+.shore-page .footer { position: relative; z-index: 1; color: #5f8792; background: #04121c; box-shadow: 0 0 0 100vmax #04121c; clip-path: inset(0 -100vmax); } /* full-width, over the fixed scene */
+
+/* narrower screens: one column, the bottle shows on the seabed between the intro and the scroll */
+@media (max-width: 980px) {
+  .shore-wrap { grid-template-columns: 1fr; grid-template-areas: "intro" "gap" "scroll"; }
+  .shore-wrap::before { content: ""; grid-area: gap; height: clamp(180px, 34vh, 300px); }
+  .scroll-spot { max-width: 560px; width: 100%; justify-self: center; }
+}
+@media (max-width: 780px) {
+  .shore-page .footer { flex-direction: column; justify-content: center; gap: 0.8rem; padding: 2rem 0; text-align: center; }
+  .scroll-roll { width: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pearl { animation: none; }
+  .arrive-shore body::after { display: none; }
+}

@@ -3,15 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#04121c" />
-    <meta name="description" content="Contact Amy Cui: email, LinkedIn, GitHub and resume." />
+    <meta name="theme-color" content="#05202a" />
+    <meta name="description" content="Write Amy Cui a message in a bottle, or find her on LinkedIn and GitHub." />
     <title>Contact — Amy Cui</title>
+    <script>
+      // arriving from the crossroads' bottle: finish the dive (see shore.css and shore-scene.js)
+      try { if (sessionStorage.getItem("arrive") === "shore") { sessionStorage.removeItem("arrive"); document.documentElement.classList.add("arrive-shore"); } } catch (e) {}
+    </script>
     <link rel="stylesheet" href="styles.css?v=48" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=3" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" />
+    <link rel="stylesheet" href="shore.css?v=4" />
     <script src="script.js?v=47" defer></script>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
-    <script type="module" src="shore-scene.js"></script>
+    <script type="module" src="shore-scene.js?v=2"></script>
   </head>
   <body class="shore-page">
     <header class="site-nav">
@@ -24,71 +28,50 @@
     </header>
 
     <main class="shore">
-      <!-- the empty bottle in the sand, drawn by shore-scene.js behind the page -->
+      <!-- the bottle in the sand, drawn by shore-scene.js behind the page, between the two columns -->
       <canvas id="shore-scene" aria-hidden="true"></canvas>
 
       <div class="shore-wrap wrap">
         <section class="shore-intro">
-          <p class="shore-kicker">Message in a bottle</p>
           <h1>Leave me a <em>message</em></h1>
-          <p class="shore-lede">
-            Reach out for design, research, frontend development, or event collaboration!
-            Cast a line out to sea and I'll write back.
-          </p>
-
+          <p class="shore-lede">Write me a message in a bottle and I'll email you back when it reaches my shore.</p>
           <a class="pearl-link" href="assets/resume.pdf" target="_blank" rel="noopener">
             <span class="pearl" aria-hidden="true"></span>
-            <span class="pearl-text">Open my resume <small>PDF · opens in a new tab</small></span>
+            <span class="pearl-text">View my Resume</span>
           </a>
-          <p class="shore-resume">
-            My experience includes full-stack development, UX research and product design, plus
-            event logistics, marketing, outreach, and staffing.
+          <p class="shore-socials">
+            Or find me on
+            <a href="https://www.linkedin.com/in/amy-cui-linked/">LinkedIn</a> and
+            <a href="https://github.com/Amimi-Codes">GitHub</a>.
           </p>
         </section>
 
-        <section class="note-spot" aria-labelledby="note-title">
-          <article class="note">
-            <span class="note-ribbon" aria-hidden="true"></span>
-            <h2 id="note-title" class="note-title">Ways to reach me</h2>
-            <ul class="note-list">
-              <li>
-                <a href="mailto:amy.cui4197@gmail.com"><span class="note-label">Email</span><span class="note-value">amy.cui4197@gmail.com</span></a>
-              </li>
-              <li>
-                <a href="https://www.linkedin.com/in/amy-cui-linked/"><span class="note-label">LinkedIn</span><span class="note-value">Connect <span aria-hidden="true">↗</span></span></a>
-              </li>
-              <li>
-                <a href="https://github.com/Amimi-Codes"><span class="note-label">GitHub</span><span class="note-value">View profile <span aria-hidden="true">↗</span></span></a>
-              </li>
-            </ul>
-            <p class="note-sign">— Amy</p>
-          </article>
+        <!-- The message is written on a parchment scroll. Sending it plays the bottle sequence
+             (script below + shore-scene.js) while the message goes to Amy's inbox through
+             Web3Forms: GitHub Pages can't send email itself, and its access key is meant to be
+             public. Without JavaScript the form still posts and comes back here. -->
+        <section class="scroll-spot" aria-labelledby="scroll-title">
+          <div class="scroll" id="scroll">
+            <span class="scroll-roll scroll-roll-l" aria-hidden="true"></span>
+            <form class="scroll-sheet" id="letter" action="https://api.web3forms.com/submit" method="POST">
+              <input type="hidden" name="access_key" value="78081fbe-d7c8-41bc-a4bb-ae8adbc8effb" />
+              <h2 id="scroll-title" class="scroll-title">A message in a bottle</h2>
+              <p class="scroll-to"><span>To</span> amy.cui4197@gmail.com</p>
+              <label class="scroll-field">Your name<input name="name" autocomplete="name" required maxlength="100" /></label>
+              <label class="scroll-field">Your email<input name="email" type="email" autocomplete="email" required maxlength="200" /></label>
+              <label class="scroll-field">Your message<textarea name="message" rows="5" required maxlength="5000"></textarea></label>
+              <!-- Web3Forms settings, plus a hidden checkbox bots tick and people don't -->
+              <input type="hidden" name="subject" value="New message from designsbyamy.ca" />
+              <input type="hidden" name="from_name" value="designsbyamy.ca" />
+              <input type="hidden" name="redirect" value="https://designsbyamy.ca/contact?sent" />
+              <input type="checkbox" name="botcheck" class="scroll-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+              <button type="submit" class="scroll-send">Seal it in a bottle &amp; send</button>
+            </form>
+            <span class="scroll-roll scroll-roll-r" aria-hidden="true"></span>
+          </div>
+          <p class="scroll-status" id="letter-status" role="status"></p>
         </section>
       </div>
-
-      <!-- Messages go to Amy's inbox through Web3Forms: GitHub Pages can't send email itself.
-           The access key is meant to be public. Without JavaScript the form still posts and comes back here. -->
-      <section class="letter-spot wrap" aria-labelledby="letter-title">
-        <form class="letter" id="letter" action="https://api.web3forms.com/submit" method="POST">
-          <input type="hidden" name="access_key" value="78081fbe-d7c8-41bc-a4bb-ae8adbc8effb" />
-          <h2 id="letter-title" class="letter-title">Write me a message</h2>
-          <p class="letter-dear" aria-hidden="true">Dear Amy,</p>
-          <div class="letter-row">
-            <label>Your name<input name="name" autocomplete="name" required maxlength="100" /></label>
-            <label>Your email<input name="email" type="email" autocomplete="email" required maxlength="200" /></label>
-          </div>
-          <label class="letter-msg">Your message<textarea name="message" rows="6" required maxlength="5000"></textarea></label>
-          <!-- Web3Forms settings, plus a hidden checkbox bots tick and people don't -->
-          <input type="hidden" name="subject" value="New message from designsbyamy.ca" />
-          <input type="hidden" name="from_name" value="designsbyamy.ca" />
-          <input type="hidden" name="redirect" value="https://designsbyamy.ca/contact?sent#letter" />
-          <input type="checkbox" name="botcheck" class="letter-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
-          <div class="letter-foot">
-            <button type="submit" class="letter-send">Seal it in a bottle &amp; send</button>
-            <p class="letter-status" id="letter-status" role="status"></p>
-          </div>
-        </form>
-      </section>
     </main>
 
     <footer class="footer wrap">
@@ -96,32 +79,108 @@
       ><span>MADE WITH A LITTLE SALT WATER</span
       ><a href="./#crossroads">BACK TO THE CROSSROADS ↑</a>
     </footer>
+
     <script>
-      // send the letter without leaving the page; the reply decides what the visitor sees
+      // Sending: the message goes to Web3Forms while the scroll and bottle play out
+      //   roll up -> bottle comes over -> scroll slides in -> corked -> bottle dissolves
+      //   -> 3s -> an empty bottle drifts down -> a fresh scroll unrolls
+      // The bottle half lives in shore-scene.js (window.__shore); without it (no WebGL, or
+      // reduced motion) the message is simply sent and the result shown.
       const letter = document.getElementById("letter");
+      const scroll = document.getElementById("scroll");
+      const sheet = letter;
+      const [rollL, rollR] = scroll.querySelectorAll(".scroll-roll");
       const status = document.getElementById("letter-status");
-      const sendBtn = letter.querySelector(".letter-send");
-      if (location.search.includes("sent")) status.textContent = "Your bottle is drifting my way. I'll write back soon!";
+      const sendBtn = letter.querySelector(".scroll-send");
+      const SENT = "Your bottle is drifting my way. I'll write back when it reaches my shore!";
+      const FAILED = 'The current pushed it back. Please try again, or email <a href="mailto:amy.cui4197@gmail.com">amy.cui4197@gmail.com</a>.';
+      if (location.search.includes("sent")) status.textContent = SENT;
+
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const play = (el, frames, ms, easing = "cubic-bezier(.45,0,.25,1)") =>
+        el.animate(frames, { duration: ms, easing, fill: "forwards" }).finished;
+
+      function send() {
+        const d = new FormData(letter);
+        d.delete("redirect"); // only for the no-JavaScript post
+        return fetch(letter.action, { method: "POST", headers: { Accept: "application/json" }, body: d })
+          .then((res) => res.json().catch(() => ({})).then((reply) => res.ok && reply.success === true));
+      }
+
+      // the sheet winds onto its two rolls, which meet in the middle
+      async function rollUp() {
+        const half = sheet.offsetWidth / 2;
+        await Promise.all([
+          play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${half}px 0 ${half}px)` }], 900),
+          play(rollL, [{ transform: "none" }, { transform: `translateX(${half - 2}px) scaleX(1.12)` }], 900),
+          play(rollR, [{ transform: "none" }, { transform: `translateX(${-half + 2}px) scaleX(1.12)` }], 900),
+        ]);
+      }
+      function unroll() {
+        scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+        const half = sheet.offsetWidth / 2;
+        return Promise.all([
+          play(scroll, [{ opacity: 0 }, { opacity: 1 }], 300, "ease-out"),
+          play(sheet, [{ clipPath: `inset(0 ${half}px 0 ${half}px)` }, { clipPath: "inset(0 0 0 0)" }], 900),
+          play(rollL, [{ transform: `translateX(${half - 2}px)` }, { transform: "none" }], 900),
+          play(rollR, [{ transform: `translateX(${-half + 2}px)` }, { transform: "none" }], 900),
+        ]).then(() => scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel()));
+      }
+      // the rolled scroll shrinks to fit the bottle's neck and slides in
+      async function intoBottle(mouth) {
+        const r = scroll.getBoundingClientRect();
+        const s = Math.min(0.32, mouth.neck / 60); // the two rolls together are about 60px wide
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const deg = (mouth.angle * 180) / Math.PI;
+        const h = r.height * s;
+        // the rolled scroll's bottom end at the mouth, along the bottle's axis
+        const tx = mouth.x - cx + Math.sin(mouth.angle) * (h / 2);
+        const ty = mouth.y - cy - Math.cos(mouth.angle) * (h / 2);
+        await play(scroll, [{ transform: "none" }, { transform: `translate(${tx}px, ${ty}px) rotate(${deg}deg) scale(${s})` }], 750);
+        const dx = -Math.sin(mouth.angle) * h, dy = Math.cos(mouth.angle) * h;
+        await play(scroll, [
+          { transform: `translate(${tx}px, ${ty}px) rotate(${deg}deg) scale(${s})`, opacity: 1 },
+          { transform: `translate(${tx + dx}px, ${ty + dy}px) rotate(${deg}deg) scale(${s})`, opacity: 0 },
+        ], 650, "ease-in");
+      }
+
       letter.addEventListener("submit", async (e) => {
         e.preventDefault();
         sendBtn.disabled = true;
-        status.className = "letter-status";
-        status.textContent = "Sealing your bottle…";
+        status.className = "scroll-status";
+        status.textContent = "Rolling up your message…";
+        const sending = send().catch(() => false);
+        const shore = window.__shore;
+        const animate = shore && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+        letter.inert = true;
         try {
-          const res = await fetch(letter.action, {
-            method: "POST",
-            headers: { Accept: "application/json" },
-            body: (() => { const d = new FormData(letter); d.delete("redirect"); return d; })(), // redirect is for the no-JS post
-          });
-          const reply = await res.json().catch(() => ({}));
-          if (!res.ok || reply.success !== true) throw new Error(reply.message);
+          if (!animate) {
+            if (!(await sending)) throw 0;
+            letter.reset();
+            status.textContent = SENT;
+            return;
+          }
+          await rollUp();
+          const r = scroll.getBoundingClientRect();
+          await shore.bottleTo(r.left + r.width / 2, r.top + r.height * 0.6);
+          status.textContent = "Sealing your bottle…";
+          await Promise.all([intoBottle(shore.mouth()), wait(500).then(() => shore.insertNote())]);
+          await shore.cork();
+          if (!(await sending)) {
+            await shore.abort(); // uncork, the bottle goes back to the sand, the message comes back
+            throw 0;
+          }
           letter.reset();
-          letter.classList.add("is-sent");
-          status.textContent = "Your bottle is drifting my way. I'll write back soon!";
+          await shore.dissolve();
+          status.textContent = SENT;
+          await wait(3000);
+          await shore.driftBack();
         } catch {
           status.classList.add("is-error");
-          status.innerHTML = 'The current pushed it back. Please try again, or email <a href="mailto:amy.cui4197@gmail.com">amy.cui4197@gmail.com</a>.';
+          status.innerHTML = FAILED;
         } finally {
+          if (animate) await unroll();
+          letter.inert = false;
           sendBtn.disabled = false;
         }
       });

@@ -142,9 +142,32 @@ function seabed(x, z) {
   scene.add(sand);
 }
 
+/* ---------- dissolving: pixels burn away along a noise pattern, with a glowing edge ---------- */
+const uDissolve = { value: 0 };
+function dissolvable(mat) {
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uDissolve = uDissolve;
+    sh.vertexShader = 'varying vec3 vDPos;\n' + sh.vertexShader.replace('#include <project_vertex>',
+      '#include <project_vertex>\n vDPos = position * 6.0;');
+    sh.fragmentShader = `uniform float uDissolve; varying vec3 vDPos;
+      float dHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+      float dNoise(vec3 p) {
+        vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(dHash(i), dHash(i + vec3(1,0,0)), f.x), mix(dHash(i + vec3(0,1,0)), dHash(i + vec3(1,1,0)), f.x), f.y),
+                   mix(mix(dHash(i + vec3(0,0,1)), dHash(i + vec3(1,0,1)), f.x), mix(dHash(i + vec3(0,1,1)), dHash(i + vec3(1,1,1)), f.x), f.y), f.z);
+      }\n` + sh.fragmentShader.replace('#include <opaque_fragment>', `
+      float dn = dNoise(vDPos) * 0.65 + dNoise(vDPos * 2.7) * 0.35;
+      if (dn < uDissolve * 1.1 - 0.05) discard;
+      outgoingLight += vec3(0.45, 1.0, 0.95) * smoothstep(0.08, 0.0, dn - (uDissolve * 1.1 - 0.05)) * step(0.001, uDissolve) * 2.5;
+      #include <opaque_fragment>`);
+  };
+  return mat;
+}
+
 /* ---------- the empty bottle and its cork ---------- */
 const bottle = new THREE.Group();
 const mouth = new THREE.Object3D();
+const note = new THREE.Group();
 {
   // hollow lathe profile: outside wall up to the lip, round the rim, inside wall back down
   const profile = [[0, 0.03], [0.42, 0], [0.49, 0.03], [0.52, 0.11], [0.5, 1.05], [0.47, 1.24], [0.35, 1.38], [0.2, 1.5], [0.17, 1.62], [0.17, 1.95],
@@ -152,22 +175,29 @@ const mouth = new THREE.Object3D();
     [0.455, 1.03], [0.46, 0.14], [0.41, 0.09], [0, 0.1]].map(([x, y]) => new THREE.Vector2(x, y));
   // clear glass by reflection and opacity: the original's transmission glass re-renders the
   // whole scene every frame, which is too heavy for a page background
-  const glass = new THREE.MeshPhysicalMaterial({
+  const glass = dissolvable(new THREE.MeshPhysicalMaterial({
     color: 0xdff9fc, metalness: 0, roughness: 0.06, transparent: true, opacity: 0.38, clearcoat: 1, clearcoatRoughness: 0.04,
     envMapIntensity: 1.7, side: THREE.DoubleSide, depthWrite: false, emissive: 0x0d4754, emissiveIntensity: 0.15
-  });
+  }));
   const mesh = new THREE.Mesh(new THREE.LatheGeometry(profile, 64), glass);
   mesh.castShadow = true;
   bottle.add(mesh);
   mouth.position.set(0, 2.06, 0);
   bottle.add(mouth);
+  // the rolled message that goes inside when a visitor sends one (hidden until then)
+  note.add(
+    new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.82, 20), dissolvable(new THREE.MeshStandardMaterial({ color: 0xe2c98f, roughness: 0.85 }))),
+    new THREE.Mesh(new THREE.CylinderGeometry(0.119, 0.119, 0.07, 20), dissolvable(new THREE.MeshStandardMaterial({ color: 0x9a2f29, roughness: 0.7 })))
+  );
+  note.visible = false;
+  bottle.add(note);
   bottle.position.set(-0.34, seabed(-0.34, 0.1) - 0.17, 0.1);
   bottle.rotation.set(0.14, 0.24, -0.7); // base in the sand, open mouth up and to the right
   scene.add(bottle);
 }
 const cork = new THREE.Mesh(new THREE.CylinderGeometry(0.152, 0.126, 0.35, 32), (() => {
   const t = corkTexture();
-  return new THREE.MeshStandardMaterial({ map: t, bumpMap: t, bumpScale: 0.028, roughness: 0.88, metalness: 0.02 });
+  return dissolvable(new THREE.MeshStandardMaterial({ map: t, bumpMap: t, bumpScale: 0.028, roughness: 0.88, metalness: 0.02 }));
 })());
 cork.castShadow = cork.receiveShadow = true;
 cork.position.set(1.08, seabed(1.08, 0.42) + 0.095, 0.42);
@@ -247,34 +277,163 @@ const bubbleData = Array.from({ length: BUBBLES }, (_, i) => i < FROM_MOUTH
       speed: 0.22 + Math.random() * 0.32, scale: 0.55 + Math.random() * 1.1, phase: i * 0.7 });
 const bd = new THREE.Object3D();
 
-/* ---------- framing: the bottle sits low in the view, the camera drifts with the mouse ---------- */
+// resting poses in the sand, to return to
+const restBottle = { pos: bottle.position.clone(), quat: bottle.quaternion.clone() };
+const restCork = { pos: cork.position.clone(), quat: cork.quaternion.clone() };
+
+/* ---------- framing ---------- */
+// The bottle sits in the gap between the intro and the scroll (centre of the screen on phones);
+// the camera drifts a little with the mouse.
 const camBase = new THREE.Vector3(), look = new THREE.Vector3(), mouse = new THREE.Vector2(), mouseEased = new THREE.Vector2();
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+let viewW = 1, viewH = 1;
 function resize() {
   const w = innerWidth, h = innerHeight, portrait = w / h < 0.9;
+  viewW = w; viewH = h;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.fov = portrait ? 50 : 40;
+  camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5);
+  look.set(0.3, portrait ? 3.0 : 2.5, 0);
+  camera.clearViewOffset();
   camera.updateProjectionMatrix();
-  // pulled back and aimed above the bottle, so it rests small in the lower part of the screen,
-  // between the intro and the note on wide screens
-  camBase.set(portrait ? 0.4 : 0.2, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5);
-  look.set(portrait ? 0.4 : 0.1, portrait ? 3.0 : 2.5, 0);
-  if (!MOTION) frame(0);
+  // shift the view so the bottle lands in the gap between the two columns
+  const intro = document.querySelector('.shore-intro'), spot = document.querySelector('.scroll-spot');
+  if (intro && spot && w > 980) {
+    camera.position.copy(camBase); camera.lookAt(look); camera.updateMatrixWorld();
+    const gapX = (intro.getBoundingClientRect().right + spot.getBoundingClientRect().left) / 2;
+    bottle.localToWorld(tmp.set(0, 1, 0)).project(camera);
+    camera.setViewOffset(w, h, ((tmp.x + 1) / 2) * w - gapX, 0, w, h);
+  }
+  if (!MOTION) frame(0, 0);
 }
 addEventListener('resize', resize);
 addEventListener('pointermove', (e) => mouse.set(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5), { passive: true });
 
+/* ---------- tweens for the message sequence ---------- */
+const tweens = [];
+const ease = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+const tween = (ms, fn, curve = ease) => new Promise((done) => tweens.push({ t0: performance.now(), ms, fn, curve, done }));
+function runTweens(now) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const tw = tweens[i], p = Math.min(1, (now - tw.t0) / tw.ms);
+    tw.fn(tw.curve(p), p);
+    if (p === 1) { tweens.splice(i, 1); tw.done(); }
+  }
+}
+let busy = false; // the bottle is in the message sequence: no idle rocking, no bubbles from its mouth
+
+// a point on screen, at a given distance in front of the camera, in world space
+function screenToWorld(x, y, dist, out) {
+  out.set((x / viewW) * 2 - 1, -(y / viewH) * 2 + 1, 0.5).unproject(camera).sub(camera.position).normalize();
+  return out.multiplyScalar(dist).add(camera.position);
+}
+function toScreen(v) {
+  const p = tmp2.copy(v).project(camera);
+  return { x: ((p.x + 1) / 2) * viewW, y: ((1 - p.y) / 2) * viewH };
+}
+function moveObject(obj, toPos, toQuat, ms, lift = 0) {
+  const fromPos = obj.position.clone(), fromQuat = obj.quaternion.clone(), mid = new THREE.Vector3();
+  return tween(ms, (k) => {
+    mid.lerpVectors(fromPos, toPos, k);
+    mid.y += Math.sin(k * Math.PI) * lift; // an arc, not a straight line
+    obj.position.copy(mid);
+    obj.quaternion.slerpQuaternions(fromQuat, toQuat, k);
+  });
+}
+const upright = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.05, 0.5, -0.12));
+
+// what contact.html calls, step by step
+window.__shore = {
+  // the bottle leaves the sand and stands upright where the scroll was (screen point = its middle)
+  async bottleTo(x, y) {
+    busy = true;
+    const dist = camera.position.distanceTo(bottle.position) * 0.72;
+    const target = screenToWorld(x, y, dist, new THREE.Vector3());
+    target.sub(tmp.set(0, 1.05, 0).applyQuaternion(upright)); // the bottle's middle on that point
+    await moveObject(bottle, target, upright, 1100, 0.6);
+  },
+  // where the mouth is on screen, the bottle's tilt there, and the neck's width in pixels
+  mouth() {
+    const m = toScreen(mouth.getWorldPosition(tmp));
+    const b = toScreen(bottle.localToWorld(tmp.set(0, 1.0, 0)));
+    const l = toScreen(bottle.localToWorld(tmp.set(-0.17, 1.8, 0))), r = toScreen(bottle.localToWorld(tmp.set(0.17, 1.8, 0)));
+    return { x: m.x, y: m.y, angle: Math.atan2(m.x - b.x, b.y - m.y), neck: Math.hypot(l.x - r.x, l.y - r.y) };
+  },
+  // the rolled message slides down the neck into the bottle
+  async insertNote() {
+    note.visible = true;
+    await tween(800, (k) => { note.position.set(0, 2.0 - 1.45 * k, 0); note.scale.setScalar(0.4 + 0.6 * k); });
+  },
+  // the cork leaves the sand and seals the mouth
+  async cork() {
+    const to = bottle.localToWorld(new THREE.Vector3(0, 2.14, 0));
+    await moveObject(cork, to, bottle.quaternion.clone(), 800, 0.8);
+    bottle.attach(cork);
+    await tween(160, (k) => cork.position.set(0, 2.14 - 0.06 * k, 0)); // pressed in
+  },
+  // the sealed bottle dissolves into the water
+  async dissolve() {
+    await tween(1300, (k) => (uDissolve.value = k), (p) => p);
+    bottle.visible = false;
+  },
+  // an empty bottle drifts down from the top of the screen and settles in the sand, its cork beside it
+  async driftBack() {
+    scene.attach(cork);
+    note.visible = false;
+    const dist = camera.position.distanceTo(restBottle.pos);
+    const top = screenToWorld(viewW * 0.5, -viewH * 0.2, dist, new THREE.Vector3());
+    bottle.position.set(restBottle.pos.x, top.y, restBottle.pos.z);
+    bottle.quaternion.setFromEuler(new THREE.Euler(0.3, 0.4, -1.4));
+    cork.position.set(restCork.pos.x + 0.4, top.y + 1.2, restCork.pos.z);
+    uDissolve.value = 0;
+    bottle.visible = true;
+    const sway = (obj, rest, ms, amp) => {
+      const from = obj.position.clone(), fromQ = obj.quaternion.clone();
+      return tween(ms, (k, p) => {
+        obj.position.lerpVectors(from, rest.pos, k);
+        obj.position.x += Math.sin(p * Math.PI * 3) * amp * (1 - p); // side to side as it sinks
+        obj.quaternion.slerpQuaternions(fromQ, rest.quat, k);
+      }, (p) => 1 - Math.pow(1 - p, 2.2));
+    };
+    await Promise.all([sway(bottle, restBottle, 2600, 0.5), sway(cork, restCork, 2900, 0.35)]);
+    busy = false;
+  },
+  // sending failed: unseal and put everything back
+  async abort() {
+    scene.attach(cork);
+    note.visible = false;
+    await Promise.all([moveObject(bottle, restBottle.pos, restBottle.quat, 1000, 0.5), moveObject(cork, restCork.pos, restCork.quat, 1000, 0.4)]);
+    busy = false;
+  }
+};
+
+// arriving from the crossroads' bottle: the camera starts at the bottle and pulls back
+const arriveStart = document.documentElement.classList.contains('arrive-shore') && MOTION ? performance.now() : 0;
+
+/* ---------- loop ---------- */
 const clock = new THREE.Clock();
-function frame(t) {
-  const dt = 0.016;
-  mouseEased.lerp(mouse, 0.04);
+function frame(t, dt) {
+  runTweens(performance.now());
+  mouseEased.lerp(mouse, Math.min(1, dt * 2.5));
   camera.position.set(camBase.x + mouseEased.x * 0.6, camBase.y - mouseEased.y * 0.25, camBase.z);
-  camera.lookAt(look);
+  tmp.copy(look);
+  if (arriveStart) {
+    const k = 1 - ease(Math.min(1, (performance.now() - arriveStart) / 1600));
+    if (k > 0) {
+      bottle.localToWorld(tmp2.set(0, 1.1, 0));
+      camera.position.lerp(tmp2.clone().add(new THREE.Vector3(0.4, 0.5, 1.6)), k);
+      tmp.lerp(tmp2, k);
+    }
+  }
+  camera.lookAt(tmp);
 
   rays.forEach((r, i) => { r.material.uniforms.uTime.value = t + i * 1.3; r.rotation.z = rayCfg[i].rotZ + Math.sin(t * 0.25 + i) * 0.025; });
-  bottle.rotation.z = -0.7 + Math.sin(t * 0.85) * 0.013;
-  bottle.rotation.x = 0.14 + Math.cos(t * 0.65) * 0.008;
-  cork.rotation.z = 0.35 + Math.sin(t * 1.1 + 0.8) * 0.018;
+  if (!busy) { // gentle settling in the current
+    bottle.rotation.z = -0.7 + Math.sin(t * 0.85) * 0.013;
+    bottle.rotation.x = 0.14 + Math.cos(t * 0.65) * 0.008;
+    cork.rotation.z = 0.35 + Math.sin(t * 1.1 + 0.8) * 0.018;
+  }
   mouth.getWorldPosition(mouthAt);
 
   kelp.forEach((k) => {
@@ -286,11 +445,12 @@ function frame(t) {
     p.needsUpdate = true;
   });
 
+  // movement per second (the original moved a fixed step per frame, so it ran twice as fast at 120Hz)
   const sp = snowGeo.attributes.position;
   for (let i = 0; i < SNOW; i++) {
-    let y = sp.getY(i) - 0.0045;
-    let x = sp.getX(i) + Math.sin(t * 0.5 + snowSeed[i]) * 0.0022;
-    let z = sp.getZ(i) + Math.cos(t * 0.4 + snowSeed[i]) * 0.0022;
+    let y = sp.getY(i) - 0.27 * dt;
+    let x = sp.getX(i) + Math.sin(t * 0.5 + snowSeed[i]) * 0.13 * dt;
+    let z = sp.getZ(i) + Math.cos(t * 0.4 + snowSeed[i]) * 0.13 * dt;
     if (y < -0.3) { y = 8.2; x = (Math.random() - 0.5) * 16; z = (Math.random() - 0.5) * 16; }
     sp.setXYZ(i, x, y, z);
   }
@@ -298,14 +458,23 @@ function frame(t) {
 
   for (let i = 0; i < BUBBLES; i++) {
     const b = bubbleData[i];
-    b.y += b.speed * dt;
     if (b.fromMouth) {
-      b.x += b.drift * 0.0045;
-      if (b.y > 5.8) { b.y = mouthAt.y - 0.03; b.x = mouthAt.x + (Math.random() - 0.5) * 0.06; b.z = mouthAt.z + (Math.random() - 0.5) * 0.06; }
+      // a corked or travelling bottle lets out no bubbles; afterwards they start again, staggered
+      if (b.y > 50) {
+        if (busy || Math.random() > dt * 1.2) { bd.scale.setScalar(0); bd.updateMatrix(); bubbles.setMatrixAt(i, bd.matrix); continue; }
+        b.y = mouthAt.y - 0.03; b.x = mouthAt.x + (Math.random() - 0.5) * 0.06; b.z = mouthAt.z + (Math.random() - 0.5) * 0.06;
+      }
+      b.y += b.speed * dt;
+      b.x += b.drift * 0.27 * dt;
+      if (b.y > 5.8) {
+        if (busy) b.y = 99;
+        else { b.y = mouthAt.y - 0.03; b.x = mouthAt.x + (Math.random() - 0.5) * 0.06; b.z = mouthAt.z + (Math.random() - 0.5) * 0.06; }
+      }
       const age = Math.max(0, b.y - mouthAt.y), spread = Math.min(0.24, age * 0.065);
       bd.position.set(b.x + Math.sin(t * 2.6 + b.phase) * spread, b.y, b.z + Math.cos(t * 2.2 + b.phase) * spread);
-      bd.scale.setScalar(b.scale * (1 + age * 0.06));
+      bd.scale.setScalar(b.y > 50 ? 0 : b.scale * (1 + age * 0.06));
     } else {
+      b.y += b.speed * dt;
       if (b.y > 6.5) b.y = seabed(b.x, b.z) + 0.08;
       bd.position.set(b.x + Math.sin(t * 2.1 + b.phase) * 0.08, b.y, b.z + Math.cos(t * 1.8 + b.phase) * 0.08);
       bd.scale.setScalar(b.scale);
@@ -320,5 +489,5 @@ function frame(t) {
 
 resize();
 canvas.classList.add('is-ready');
-if (MOTION) renderer.setAnimationLoop(() => frame(clock.getElapsedTime()));
-else frame(0);
+if (MOTION) renderer.setAnimationLoop(() => { const dt = Math.min(clock.getDelta(), 0.05); frame(clock.elapsedTime, dt); });
+else frame(0, 0);
