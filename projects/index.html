@@ -7,18 +7,18 @@
     <meta name="description" content="The Reef: Amy Cui's finished projects, from UX case studies to front-end builds and graphic design." />
     <title>Projects — Amy Cui</title>
     <link rel="stylesheet" href="../styles.css?v=48" />
-    <link rel="stylesheet" href="../reef.css?v=6" />
+    <link rel="stylesheet" href="../reef.css?v=7" />
     <script src="../script.js?v=47" defer></script>
-    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
-    <script type="module" src="../shore-scene.js?v=6"></script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+    <script type="module" src="../reef-scene.js?v=1"></script>
     <script>
       // arriving from the crossroads: play the second half of its transition
       try { if (sessionStorage.getItem("arrive") === "reef") { sessionStorage.removeItem("arrive"); document.documentElement.classList.add("arrive-reef"); } } catch (e) {}
     </script>
   </head>
   <body class="reef-page">
-    <!-- the seabed, animated behind the page (shore-scene.js), under a dark tint -->
-    <canvas id="shore-scene" data-mode="seabed" aria-hidden="true"></canvas>
+    <!-- the crossroads' seabed with corals, animated behind the page (reef-scene.js), under a dark tint -->
+    <canvas id="reef-scene" aria-hidden="true"></canvas>
     <div class="reef-tint" aria-hidden="true"></div>
     <a class="skip-link" href="#specimens">Skip to projects</a>
     <header class="site-nav">

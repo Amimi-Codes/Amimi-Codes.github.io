@@ -13,8 +13,8 @@
   background: var(--reef-bg);
   color: var(--reef-text);
 }
-/* the seabed from the contact page behind everything: live (shore-scene.js, data-mode="seabed",
-   half speed) over a still of it as the fallback, then a dark tint and the sonar grid on top */
+/* the crossroads' seabed with corals behind everything: live (reef-scene.js, half speed) over a
+   still of it as the fallback, then a dark tint and the sonar grid on top */
 .reef-page::before {
   content: "";
   position: fixed;
@@ -22,7 +22,7 @@
   z-index: -3;
   background: url("assets/reef/seabed-desk.webp") center bottom / cover no-repeat, var(--reef-bg);
 }
-#shore-scene {
+#reef-scene {
   position: fixed;
   inset: 0;
   z-index: -2;
@@ -31,7 +31,7 @@
   opacity: 0;
   transition: opacity 1s ease;
 }
-#shore-scene.is-ready { opacity: 1; }
+#reef-scene.is-ready { opacity: 1; }
 .reef-tint {
   position: fixed;
   inset: 0;

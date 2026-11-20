@@ -5,10 +5,6 @@ import * as THREE from 'three';
 
 const canvas = document.getElementById('shore-scene');
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-// data-mode="seabed" (the projects page): the same seabed without the bottle, at half speed,
-// drawn every other frame at standard resolution since it sits under a dark tint
-const SEABED = canvas.dataset.mode === 'seabed';
-const SPEED = SEABED ? 0.5 : 1;
 
 let renderer;
 try {
@@ -17,7 +13,7 @@ try {
   canvas.remove();
   throw e;
 }
-renderer.setPixelRatio(SEABED ? 1 : Math.min(devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -304,7 +300,7 @@ function resize() {
   viewW = w; viewH = h;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  camera.fov = portrait ? 50 : 40; // the same view on the contact page and behind the projects page
+  camera.fov = portrait ? 50 : 40;
   camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5);
   look.set(0.3, portrait ? 3.0 : 2.5, 0);
   camera.clearViewOffset();
@@ -333,11 +329,7 @@ function runTweens(now) {
     if (p === 1) { tweens.splice(i, 1); tw.done(); }
   }
 }
-let busy = SEABED; // the bottle is in the message sequence (or absent): no idle rocking, no bubbles from its mouth
-if (SEABED) {
-  bottle.visible = cork.visible = false;
-  bubbleData.forEach((b) => { if (b.fromMouth) b.y = 99; }); // no bottle, so no bubbles from its mouth, from the very start
-}
+let busy = false; // the bottle is in the message sequence: no idle rocking, no bubbles from its mouth
 
 // a point on screen, at a given distance in front of the camera, in world space
 function screenToWorld(x, y, dist, out) {
@@ -511,10 +503,8 @@ function frame(t, dt) {
 
 resize();
 canvas.classList.add('is-ready');
-let odd = false;
 if (MOTION) renderer.setAnimationLoop(() => {
-  if (SEABED && (odd = !odd)) return; // every other frame is plenty at half speed under a tint
-  const dt = Math.min(clock.getDelta(), 0.1);
-  frame(clock.elapsedTime * SPEED, dt * SPEED);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  frame(clock.elapsedTime, dt);
 });
 else frame(0, 0);
