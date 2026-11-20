@@ -5,6 +5,10 @@ import * as THREE from 'three';
 
 const canvas = document.getElementById('shore-scene');
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+// data-mode="seabed" (the projects page): just the seabed behind the page, no bottle, at half
+// speed, a wider view, and drawn every other frame at standard resolution since it sits under a tint
+const SEABED = canvas.dataset.mode === 'seabed';
+const SPEED = SEABED ? 0.5 : 1;
 
 let renderer;
 try {
@@ -13,7 +17,7 @@ try {
   canvas.remove();
   throw e;
 }
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(SEABED ? 1 : Math.min(devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -186,7 +190,8 @@ const note = new THREE.Group();
   bottle.add(mouth);
   // the rolled message that goes inside when a visitor sends one (hidden until then)
   // the same stained, rolled parchment as the page's rolled scroll: spiral ends, twine tied round
-  const tex = (url) => { const t = new THREE.TextureLoader().load(url); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  // texture paths are relative to this file, so they load from any page
+  const tex = (url) => { const t = new THREE.TextureLoader().load(new URL(url, import.meta.url).href); t.colorSpace = THREE.SRGBColorSpace; return t; };
   const paperSide = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-body.webp'), roughness: 0.9 }));
   const paperEnd = dissolvable(new THREE.MeshStandardMaterial({ map: tex('assets/shore/note-end.webp'), roughness: 0.95 }));
   const twine = dissolvable(new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 1 }));
@@ -299,9 +304,9 @@ function resize() {
   viewW = w; viewH = h;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  camera.fov = portrait ? 50 : 40;
-  camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5);
-  look.set(0.3, portrait ? 3.0 : 2.5, 0);
+  camera.fov = SEABED ? (portrait ? 62 : 52) : portrait ? 50 : 40;
+  if (SEABED) { camBase.set(0.3, portrait ? 4.4 : 3.9, portrait ? 14 : 12.5); look.set(0.3, portrait ? 3.2 : 2.6, 0); }
+  else { camBase.set(0.3, portrait ? 3.4 : 3.1, portrait ? 11 : 9.5); look.set(0.3, portrait ? 3.0 : 2.5, 0); }
   camera.clearViewOffset();
   camera.updateProjectionMatrix();
   // shift the view so the bottle lands in the gap between the two columns
@@ -328,7 +333,8 @@ function runTweens(now) {
     if (p === 1) { tweens.splice(i, 1); tw.done(); }
   }
 }
-let busy = false; // the bottle is in the message sequence: no idle rocking, no bubbles from its mouth
+let busy = SEABED; // the bottle is in the message sequence (or absent): no idle rocking, no bubbles from its mouth
+if (SEABED) bottle.visible = cork.visible = false;
 
 // a point on screen, at a given distance in front of the camera, in world space
 function screenToWorld(x, y, dist, out) {
@@ -502,5 +508,10 @@ function frame(t, dt) {
 
 resize();
 canvas.classList.add('is-ready');
-if (MOTION) renderer.setAnimationLoop(() => { const dt = Math.min(clock.getDelta(), 0.05); frame(clock.elapsedTime, dt); });
+let odd = false;
+if (MOTION) renderer.setAnimationLoop(() => {
+  if (SEABED && (odd = !odd)) return; // every other frame is plenty at half speed under a tint
+  const dt = Math.min(clock.getDelta(), 0.1);
+  frame(clock.elapsedTime * SPEED, dt * SPEED);
+});
 else frame(0, 0);
