@@ -168,7 +168,7 @@
 .drift-note p { margin: 0; font: 600 clamp(1.5rem, 2.6vw, 1.9rem)/1.32 Caveat, cursive; color: #1f2a52; transform: rotate(-1.5deg); }
 .drift-note.is-shown { visibility: visible; }
 /* writing on the scroll: the cursor becomes a quill (its nib is the hotspot) */
-.scroll, .scroll input, .scroll textarea, .scroll label { cursor: url("assets/shore/quill-cursor.png") 4 92, text; }
+.scroll, .scroll input, .scroll textarea, .scroll label { cursor: var(--quill-cursor, url("assets/shore/quill-cursor.png") 4 92, text); /* quill-cursor.js draws the real one */ }
 
 .scroll-title {
   margin: 0 0 0.3rem;
