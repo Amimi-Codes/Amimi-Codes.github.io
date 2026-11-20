@@ -12,7 +12,7 @@
     </script>
     <link rel="stylesheet" href="styles.css?v=48" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=13" />
+    <link rel="stylesheet" href="shore.css?v=14" />
     <script src="script.js?v=47" defer></script>
     <script src="quill-cursor.js?v=2" defer></script>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
@@ -53,7 +53,7 @@
              public. Without JavaScript the form still posts and comes back here. -->
         <section class="scroll-spot" aria-labelledby="scroll-title">
           <div class="scroll" id="scroll">
-            <span class="scroll-roll scroll-roll-l" aria-hidden="true"></span>
+            <span class="scroll-roll" aria-hidden="true"></span>
             <form class="scroll-sheet" id="letter" action="https://api.web3forms.com/submit" method="POST">
               <input type="hidden" name="access_key" value="78081fbe-d7c8-41bc-a4bb-ae8adbc8effb" />
               <h2 id="scroll-title" class="scroll-title">A message in a bottle</h2>
@@ -68,7 +68,6 @@
               <input type="checkbox" name="botcheck" class="scroll-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <button type="submit" class="scroll-send" aria-label="Send: seal it in a bottle">Send</button>
             </form>
-            <span class="scroll-roll scroll-roll-r" aria-hidden="true"></span>
             <img class="scroll-rolled" src="assets/shore/scroll-closed.webp" alt="" width="272" height="1100" />
           </div>
           <div class="drift-note" aria-hidden="true"><p>Your bottle is drifting my way. I'll write back when it reaches my shore!</p></div>
@@ -99,7 +98,7 @@
       const letter = document.getElementById("letter");
       const scroll = document.getElementById("scroll");
       const sheet = letter;
-      const [rollL, rollR] = scroll.querySelectorAll(".scroll-roll");
+      const roll = scroll.querySelector(".scroll-roll");
       const rolled = scroll.querySelector(".scroll-rolled");
       const driftNote = document.querySelector(".drift-note");
       const meltMap = document.getElementById("note-melt-map");
@@ -125,38 +124,40 @@
       // and then moves into the neck together with the 3D note.
       // NOTE_LEN: the closed-scroll image's height in bottle units (the 0.9-long note, drawn tipped so its end shows)
       const NOTE_LEN = 0.927, NOTE_TOP = 0.44, NOTE_TRAVEL = 1.88; // start above the mouth; slide down the bottle
-      let closed = { s: 1, k: 1, half: 0, move: 0 };
-      // the sheet winds onto its two curls, which meet in the middle and become one rolled scroll
+      let closed = { s: 1, k: 1, cut: 0 };
+      // Closing: the sheet winds up from right to left onto a roll that forms at its left edge and
+      // thickens until it is the closed scroll. Everything turns about that roll, so it stays put.
       async function rollUp(unit) {
-        const H = scroll.offsetHeight, rw = rollL.offsetWidth;
-        const half = sheet.offsetWidth / 2;  // the sheet is wound away from both sides to nothing
-        const s = (NOTE_LEN * unit) / H;   // closed = the bottle note's size
-        const k = Math.max(1, (H * 0.247) / (2 * rw)); // the two rolls widen to the closed scroll's width (it is 0.247 x its height)
-        const move = scroll.offsetWidth / 2 - rw / 2 - (rw * k) / 2; // the rolls meet side by side in the middle
-        closed = { s, k, half, move };
+        const H = scroll.offsetHeight, W = scroll.offsetWidth, rw = roll.offsetWidth;
+        const s = (NOTE_LEN * unit) / H;               // closed = the bottle note's size
+        const k = Math.max(1, (H * 0.247) / rw);       // the roll thickens to the closed scroll's width (0.247 x its height)
+        const cut = W - rw / 2;                         // the sheet is wound away to the roll's middle
+        closed = { s, k, cut };
+        scroll.style.transformOrigin = `${rw / 2}px 50%`;
+        rolled.style.left = `${rw / 2}px`;
         await Promise.all([
           play(scroll, [{ transform: "none" }, { transform: `scale(${s})` }], 1100),
-          play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${half}px 0 ${half}px)` }], 900),
-          play(rollL, [{ transform: "none" }, { transform: `translateX(${move}px) scaleX(${k})` }], 900),
-          play(rollR, [{ transform: "none" }, { transform: `translateX(${-move}px) scaleX(${k})` }], 900),
+          play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${cut}px 0 0)` }], 950),
+          play(roll, [{ opacity: 0, transform: "scaleX(0.35)" }, { opacity: 1, offset: 0.12 }, { opacity: 1, transform: `scaleX(${k})` }], 950),
         ]);
         await Promise.all([
           play(rolled, [{ opacity: 0 }, { opacity: 1 }], 300, "ease-out"),
-          play(rollL, [{ opacity: 1 }, { opacity: 0 }], 300),
-          play(rollR, [{ opacity: 1 }, { opacity: 0 }], 300),
+          play(roll, [{ opacity: 1, transform: `scaleX(${k})` }, { opacity: 0, transform: `scaleX(${k})` }], 300),
         ]);
       }
-      // a fresh scroll: grows from the closed size and unrolls
+      // a fresh scroll: grows from the closed size and unrolls from left to right; the roll is used up
       function unroll() {
         scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-        const { s, k, half, move } = closed;
+        const { s, k, cut } = closed;
         return Promise.all([
           play(scroll, [{ opacity: 0, transform: `scale(${s})` }, { opacity: 1, offset: 0.25 }, { opacity: 1, transform: "none" }], 1100),
           play(rolled, [{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], 600),
-          play(sheet, [{ clipPath: `inset(0 ${half}px 0 ${half}px)` }, { clipPath: "inset(0 0 0 0)" }], 1100),
-          play(rollL, [{ transform: `translateX(${move}px) scaleX(${k})` }, { transform: "none" }], 1100),
-          play(rollR, [{ transform: `translateX(${-move}px) scaleX(${k})` }, { transform: "none" }], 1100),
-        ]).then(() => scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel()));
+          play(sheet, [{ clipPath: `inset(0 ${cut}px 0 0)` }, { clipPath: "inset(0 0 0 0)" }], 1150),
+          play(roll, [{ opacity: 1, transform: `scaleX(${k})` }, { opacity: 1, offset: 0.85 }, { opacity: 0, transform: "scaleX(0.35)" }], 1150),
+        ]).then(() => {
+          scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+          scroll.style.transformOrigin = rolled.style.left = "";
+        });
       }
 
       // the crumpled note with the confirmation: settles in, and later melts away
@@ -184,7 +185,7 @@
       // the closed scroll lines up with the top of the bottle, where the 3D note starts, then both
       // slide down the neck together: the page's scroll hands over to the 3D one inside the glass
       async function intoBottle(mouth, insertNote) {
-        const r = scroll.getBoundingClientRect();
+        const r = rolled.getBoundingClientRect(); // the closed scroll (the scroll turns about it)
         const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         const s = (NOTE_LEN * mouth.unit) / scroll.offsetHeight;
         const deg = (mouth.angle * 180) / Math.PI, ux = Math.sin(mouth.angle), uy = -Math.cos(mouth.angle);

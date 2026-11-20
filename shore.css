@@ -115,15 +115,14 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  margin: 0 6%; /* room for the rolls at the sides */
-  padding: clamp(2.6rem, 6vh, 3.4rem) clamp(1.6rem, 3.2vw, 2.4rem) clamp(2.4rem, 5vh, 3rem);
+  padding: clamp(2.6rem, 6vh, 3.4rem) clamp(2.2rem, 4.4vw, 3.2rem) clamp(2.4rem, 5vh, 3rem);
   background: url("assets/shore/parchment.webp") center / 100% 100% no-repeat;
   color: var(--ink);
 }
-/* The side rolls and the closed scroll are renders of the 3D scroll the bottle's note is built
-   from (shore-scene.js), so the page and the bottle show the same paper. Each roll is as tall as
-   the paper left between the torn edges (a touch less: it sits in front), centred on it, and
-   stands mostly beyond the sheet's edge, as in the 3D model. */
+/* The roll and the closed scroll are renders of the 3D scroll the bottle's note is built from
+   (shore-scene.js), so the page and the bottle show the same paper. The open note has no rolls:
+   the roll only exists while the sheet winds up onto its left edge (right to left) or unrolls. It is
+   as tall as the paper between the torn edges, a touch less since it sits in front. */
 .scroll-roll {
   position: absolute;
   z-index: 1;
@@ -133,10 +132,10 @@
   width: 7.74%;
   background: url("assets/shore/scroll-roll.webp") center / 100% 100% no-repeat;
   filter: drop-shadow(5px 4px 5px rgba(40, 22, 8, 0.45)); /* lit from the upper left, onto the sheet */
-  transform-origin: 50% 50%;
+  opacity: 0;
+  pointer-events: none;
 }
-.scroll-roll-r { left: auto; right: 0; }
-/* once rolled up, the two rolls become one closed, tied scroll */
+/* once rolled up, the roll becomes the closed, tied scroll */
 .scroll-rolled {
   position: absolute;
   z-index: 2;
