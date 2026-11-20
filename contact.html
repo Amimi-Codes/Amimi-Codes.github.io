@@ -124,36 +124,46 @@
       // and then moves into the neck together with the 3D note.
       // NOTE_LEN: the closed-scroll image's height in bottle units (the 0.9-long note, drawn tipped so its end shows)
       const NOTE_LEN = 0.927, NOTE_TOP = 0.44, NOTE_TRAVEL = 1.88; // start above the mouth; slide down the bottle
-      let closed = { s: 1, k: 1, cut: 0 };
-      // Closing: the sheet winds up from right to left onto a roll that forms at its left edge and
-      // thickens until it is the closed scroll. Everything turns about that roll, so it stays put.
+      let closed = { s: 1, k: 1, cut: 0, travel: 0 };
+      // Closing: the right edge stays still while a roll forms at the left edge and travels right,
+      // winding the sheet up and thickening until it is the closed scroll at the right edge.
+      // Everything then turns about that closed scroll.
       async function rollUp(unit) {
         const H = scroll.offsetHeight, W = scroll.offsetWidth, rw = roll.offsetWidth;
         const s = (NOTE_LEN * unit) / H;               // closed = the bottle note's size
         const k = Math.max(1, (H * 0.247) / rw);       // the roll thickens to the closed scroll's width (0.247 x its height)
-        const cut = W - rw / 2;                         // the sheet is wound away to the roll's middle
-        closed = { s, k, cut };
-        scroll.style.transformOrigin = `${rw / 2}px 50%`;
-        rolled.style.left = `${rw / 2}px`;
+        const travel = W - rw;                          // the roll's path from the left edge to the right
+        const cut = W - rw / 2;                         // the sheet is wound away up to the roll's middle
+        closed = { s, k, cut, travel };
+        scroll.style.transformOrigin = `${W - rw / 2}px 50%`;
+        rolled.style.left = `${W - rw / 2}px`;
         await Promise.all([
           play(scroll, [{ transform: "none" }, { transform: `scale(${s})` }], 1100),
-          play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${cut}px 0 0)` }], 950),
-          play(roll, [{ opacity: 0, transform: "scaleX(0.35)" }, { opacity: 1, offset: 0.12 }, { opacity: 1, transform: `scaleX(${k})` }], 950),
+          play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 0 0 ${cut}px)` }], 950),
+          play(roll, [
+            { opacity: 0, transform: "translateX(0) scaleX(0.35)" },
+            { opacity: 1, offset: 0.1 },
+            { opacity: 1, transform: `translateX(${travel}px) scaleX(${k})` },
+          ], 950),
         ]);
         await Promise.all([
           play(rolled, [{ opacity: 0 }, { opacity: 1 }], 300, "ease-out"),
-          play(roll, [{ opacity: 1, transform: `scaleX(${k})` }, { opacity: 0, transform: `scaleX(${k})` }], 300),
+          play(roll, [{ opacity: 1, transform: `translateX(${travel}px) scaleX(${k})` }, { opacity: 0, transform: `translateX(${travel}px) scaleX(${k})` }], 300),
         ]);
       }
-      // a fresh scroll: grows from the closed size and unrolls from left to right; the roll is used up
+      // a fresh scroll: grows from the closed size and unrolls back to the left; the roll is used up
       function unroll() {
         scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-        const { s, k, cut } = closed;
+        const { s, k, cut, travel } = closed;
         return Promise.all([
           play(scroll, [{ opacity: 0, transform: `scale(${s})` }, { opacity: 1, offset: 0.25 }, { opacity: 1, transform: "none" }], 1100),
           play(rolled, [{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], 600),
-          play(sheet, [{ clipPath: `inset(0 ${cut}px 0 0)` }, { clipPath: "inset(0 0 0 0)" }], 1150),
-          play(roll, [{ opacity: 1, transform: `scaleX(${k})` }, { opacity: 1, offset: 0.85 }, { opacity: 0, transform: "scaleX(0.35)" }], 1150),
+          play(sheet, [{ clipPath: `inset(0 0 0 ${cut}px)` }, { clipPath: "inset(0 0 0 0)" }], 1150),
+          play(roll, [
+            { opacity: 1, transform: `translateX(${travel}px) scaleX(${k})` },
+            { opacity: 1, offset: 0.88 },
+            { opacity: 0, transform: "translateX(0) scaleX(0.35)" },
+          ], 1150),
         ]).then(() => {
           scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
           scroll.style.transformOrigin = rolled.style.left = "";
@@ -208,7 +218,7 @@
         e.preventDefault();
         sendBtn.disabled = true;
         status.className = "scroll-status";
-        status.textContent = "Rolling up your message…";
+        status.textContent = "";
         const sending = send().catch(() => false);
         const shore = window.__shore;
         const animate = shore && !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -223,7 +233,6 @@
           const r = scroll.getBoundingClientRect();
           await rollUp(shore.unitAt());
           await shore.bottleTo(r.left + r.width / 2, r.top + r.height * 0.6);
-          status.textContent = "Sealing your bottle…";
           await intoBottle(shore.mouth(), (ms) => shore.insertNote(ms));
           await shore.cork();
           if (!(await sending)) {
