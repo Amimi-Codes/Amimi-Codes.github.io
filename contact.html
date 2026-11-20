@@ -12,7 +12,7 @@
     </script>
     <link rel="stylesheet" href="styles.css?v=48" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" />
-    <link rel="stylesheet" href="shore.css?v=8" />
+    <link rel="stylesheet" href="shore.css?v=9" />
     <script src="script.js?v=47" defer></script>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
     <script type="module" src="shore-scene.js?v=3"></script>
@@ -121,11 +121,11 @@
 
       // the sheet winds onto its two rolls, which meet in the middle
       async function rollUp() {
-        const half = sheet.offsetWidth / 2;
+        const half = sheet.offsetWidth / 2 - rollL.offsetWidth / 2; // the curls meet in the middle
         await Promise.all([
           play(sheet, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: `inset(0 ${half}px 0 ${half}px)` }], 900),
-          play(rollL, [{ transform: "none" }, { transform: `translateX(${half - 2}px) scaleX(1.12)` }], 900),
-          play(rollR, [{ transform: "none" }, { transform: `translateX(${-half + 2}px) scaleX(1.12)` }], 900),
+          play(rollL, [{ transform: "none" }, { transform: `translateX(${half - rollL.offsetWidth / 2}px) scaleX(1.12)` }], 900),
+          play(rollR, [{ transform: "none" }, { transform: `translateX(${-half + rollL.offsetWidth / 2}px) scaleX(1.12)` }], 900),
         ]);
         // the two curls become one rolled, tied scroll
         await Promise.all([
@@ -136,12 +136,12 @@
       }
       function unroll() {
         scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel());
-        const half = sheet.offsetWidth / 2;
+        const half = sheet.offsetWidth / 2 - rollL.offsetWidth / 2;
         return Promise.all([
           play(scroll, [{ opacity: 0 }, { opacity: 1 }], 300, "ease-out"),
           play(sheet, [{ clipPath: `inset(0 ${half}px 0 ${half}px)` }, { clipPath: "inset(0 0 0 0)" }], 900),
-          play(rollL, [{ transform: `translateX(${half - 2}px)` }, { transform: "none" }], 900),
-          play(rollR, [{ transform: `translateX(${-half + 2}px)` }, { transform: "none" }], 900),
+          play(rollL, [{ transform: `translateX(${half - rollL.offsetWidth / 2}px)` }, { transform: "none" }], 900),
+          play(rollR, [{ transform: `translateX(${-half + rollL.offsetWidth / 2}px)` }, { transform: "none" }], 900),
         ]).then(() => scroll.getAnimations({ subtree: true }).forEach((a) => a.cancel()));
       }
       // the crumpled note with the confirmation: settles in, and later melts away
